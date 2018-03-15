@@ -1,9 +1,31 @@
 #pragma once
 #include <autodiff.h>
+#include <aad.h>
 #include <random> 
 
-
 using namespace std;
+
+enum MCtype
+{
+	MC1,
+	MC2
+};
+
+void Reset(double &var);
+void Reset(autodiff &var);
+void Reset(aad &var);
+
+double GetValue(double &var);
+double GetValue(autodiff &var);
+double GetValue(aad &var);
+
+double GetGrad(double &var, int n = 0);
+double GetGrad(autodiff &var, int n = 0);
+double GetGrad(aad &var, int n = 0);
+
+int GetVarsCount(double &var);
+int GetVarsCount(autodiff &var);
+int GetVarsCount(aad &var);
 
 template <typename type1, typename type2, typename type3, typename type4, typename type5> class contract
 {
@@ -11,20 +33,40 @@ template <typename type1, typename type2, typename type3, typename type4, typena
 private:
     default_random_engine generator;
     normal_distribution<double> distribution;
+
 	type1* S;
 	type2* sigma;
 	type3* t;
 	type4* r;
+	type5 res;
+
+	double price;
+	double delta;
+	double vega;
+	double theta;
+	double rho;
+	vector<double> rnd;
+
 	double K, T;
 	type5 d1(); // we can do these functions private so that nobody could use them outside of this class
 	type5 d2();
+	type5 d1(type1 &St, type2 &sigmat, type3 &tt, type4 &rt);
+	type5 d2(type1 &St, type2 &sigmat, type3 &tt, type4 &rt);
+
+	type5 MCPath1(type1 &St, type2 &sigmat, type3 &rt, type4 & tt, double rnd, int n);
+	type5 MCPath2(type1 &St, type2 &sigmat, type3 &rt, type4 & tt, double rnd, int n);
 
 public:
 	contract(type1*, type2*, type3*, type4*, double, double);
 	contract();
-	type5 CalculatePrice();
-	type5 CalculatePriceMC1(int, int);
-	type5 CalculatePriceMC2(int, int);
+	void CalculateGradient();
+	void CalculatePrice();
+	void CalculatePriceMC(int, int, MCtype, bool useTheSameRndSequence=false);
+	double GetPrice();
+	double GetDelta();
+	double GetVega();
+	double GetRho();
+	double GetTheta();
 
 	type5 Delta();
 	type5 Vega();
@@ -34,20 +76,72 @@ public:
 };
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
-inline contract<type1, type2, type3, type4, type5>::contract(type1* S1, type2* sigma1, type3* t1, type4* r1, double T1, double K1)
+inline contract<type1, type2, type3, type4, type5>::contract(type1* S1, type2* sigma1, type3* t1, type4* r1, double T1, double K1):
+	price(0.0)
 {
 	S = S1; sigma = sigma1; t = t1;	r = r1;	T = T1;	K = K1;
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
-inline contract<type1, type2, type3, type4, type5>::contract() : distribution(0.0, 1.0)
+inline contract<type1, type2, type3, type4, type5>::contract() : distribution(0.0, 1.0), price(0.0)
 {
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
-inline type5 contract<type1, type2, type3, type4, type5>::CalculatePrice()
+inline void contract<type1, type2, type3, type4, type5>::CalculateGradient()
 {
-	return *S * N(d1()) - K*exp(-*r*(T - *t))*N(d2());
+	//if (typeid(type5) == typeid(autodiff))
+	//{
+		delta = 0.0;
+		vega = 0.0;
+		theta = 0.0;
+		rho = 0.0;
+		for (int i = 0; i < GetVarsCount(res); ++i)
+		{
+			delta += GetGrad(res, i) * GetGrad(*S, i);
+			vega += GetGrad(res, i) * GetGrad(*sigma, i);
+			theta += GetGrad(res, i) * GetGrad(*t, i);
+			rho += GetGrad(res, i) * GetGrad(*r, i);
+		}
+	/*}
+	else if (typeid(type5) == typeid(aad))
+	{
+		delta = GetGrad(*S);
+		vega = GetGrad(*sigma);
+		theta = GetGrad(*t);
+		rho = GetGrad(*r);
+	}
+	else if (typeid(type5) == typeid(double))
+	{
+		delta = 0.0;
+		vega = 0.0;
+		theta = 0.0;
+		rho = 0.0;
+	}
+	else
+	{
+		throw exception::exception("Unknown variable type");
+	}*/
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline void contract<type1, type2, type3, type4, type5>::CalculatePrice()
+{
+	//type1 St;
+	//type2 sigmat;
+	//type3 tt;
+	//type4 rt;
+
+	//St = *S;
+	//sigmat = *sigma;
+	//tt = *t;
+	//rt = *r;
+	
+	//res = St * N(d1(St, sigmat, tt, rt)) - K * exp(-rt * (T - tt))*N(d2(St, sigmat, tt, rt));
+	res = *S * N(d1()) - K * exp(-*r * (T - *t))*N(d2());
+
+	price = GetValue(res);
+	CalculateGradient();
 }
 
 
@@ -58,9 +152,21 @@ inline type5 contract<type1, type2, type3, type4, type5>::d1()
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline type5 contract<type1, type2, type3, type4, type5>::d1(type1 &St, type2 &sigmat, type3 &tt, type4 &rt)
+{
+	return (log(St / K) + (rt + sigmat*sigmat / 2.0)*(T - tt)) / (sigmat*sqrt(T - tt));
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
 inline type5 contract<type1, type2, type3, type4, type5>::d2()
 {
 	return (d1() - *sigma*sqrt(T - *t));
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline type5 contract<type1, type2, type3, type4, type5>::d2(type1 &St, type2 &sigmat, type3 &tt, type4 &rt)
+{
+	return (d1(St, sigmat, tt, rt) - sigmat*sqrt(T - tt));
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
@@ -88,47 +194,150 @@ inline type5 contract<type1, type2, type3, type4, type5>::Rho()
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
-inline type5 contract<type1, type2, type3, type4, type5>::CalculatePriceMC1(int n, int m)
+inline type5 contract<type1, type2, type3, type4, type5>::MCPath1(type1 &St, type2 &sigmat, type3 &rt, type4 & tt, double rnd, int n)
 {
-	// n - time
-	// m - trajectory
-
-	type5 res(0.0); // potentially may cause problems in derivatives calculation with autodiff
-	for (int i = 0; i < m; i++)
-	{
-		type1 St = *S;
-		for (int j = 1; j < n; j++)
-		{
-			St = St * (1 + *r*(T / n) + *sigma*sqrt((T / n))*distribution(generator));
-		}
-		if (St > K)
-			res = res + (St - K);
-	}
-	res = res / m;
-	res = exp(-*r*(T - *t))*res;
-	return res;
+	return St * (1 + rt * (T - tt) / n + sigmat * sqrt((T - tt) / n)*rnd);
 }
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
-inline type5 contract<type1, type2, type3, type4, type5>::CalculatePriceMC2(int n, int m)
+inline type5 contract<type1, type2, type3, type4, type5>::MCPath2(type1 &St, type2 &sigmat, type3 &rt, type4 & tt, double rnd, int n)
+{
+	return St * exp((rt - sigmat*sigmat / 2)*(T - tt) / n + sigmat*sqrt((T - tt) / n) * rnd);
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n, int m, MCtype type, bool useTheSameRndSequence)
 {
 	// n - time
 	// m - trajectory
+	/*
+	price = 0.0; // potentially may cause problems in derivatives calculation with autodiff
+	delta = 0.0;
+	vega = 0.0;
+	rho = 0.0;
+	theta = 0.0;
+	vector<type5> result(m + 1, 0.0);
+	vector<type1> St(n, *S);
+	type2 sigmat(*sigma);
+	type3 tt(*t);
+	type4 rt(*r);
 
-	type5 res(0.0); // potentially may cause problems in derivatives calculation with autodiff
+	if (!useTheSameRndSequence || size(rnd) == 0)
+	{
+		rnd.resize(m*(n - 1));
+		for (int i = 0; i < m; i++)
+			for (int j = 0; j < (n - 1); j++)
+				rnd[i*(n - 1) + j] = distribution(generator);
+	}
+
 	for (int i = 0; i < m; i++)
 	{
-		type1 St = *S;
 		for (int j = 1; j < n; j++)
 		{
-			St = St * exp((*r - *sigma**sigma / 2)*(T / n) + *sigma*sqrt(T / n) * distribution(generator));
+			switch (type)
+			{
+			case MCtype::MC1:
+				St[j] = MCPath1(St[j - 1], sigmat, rt, tt, rnd[i*(n - 1) + j - 1], n);
+				break;
+			case MCtype::MC2:
+				St[j] = MCPath2(St[j - 1], sigmat, rt, tt, rnd[i*(n - 1) + j - 1], n);
+				break;
+			default:
+				throw exception("unknown MC type: " + type);
+				break;
+			}
 		}
-		if (St > K)
-			res = res + (St - K);
+		
+		result[i + 1] = result[i] + exp(-rt*(T - tt))*(St[n - 1] - K)*((St[n - 1] > K) ? 1.0 : 0.0);
+		//if (St[n - 1] > K)
+			//res[i + 1] = res[i] + exp(-rt * (T - tt))*(St[n - 1] - K);
 	}
-	res = res / m;
-	res = exp(-*r*(T - *t))*res;
-	return res;
+
+	res = result[m] / m;
+	price = GetValue(res);
+
+	delta = GetGrad(St[0]) / m;
+	vega = GetGrad(sigmat) / m;
+	rho = GetGrad(rt) / m;
+	theta = GetGrad(tt) / m;
+	*/
+
+
+	vector<type5> result(m + 1, 0.0);
+	vector<type1> St(n);
+	type2 sigmat;
+	type3 tt;
+	type4 rt;
+
+	St[0] = *S;
+	sigmat = *sigma;
+	tt = *t;
+	rt = *r;
+
+	if (!useTheSameRndSequence || size(rnd) == 0)
+	{
+		rnd.resize(m*(n - 1));
+		for (int i = 0; i < m; i++)
+			for (int j = 0; j < (n - 1); j++)
+				rnd[i*(n - 1) + j] = distribution(generator);
+	}
+
+	for (int i = 0; i < m; i++)
+	{
+		for (int j = 1; j < n; j++)
+		{
+			switch (type)
+			{
+			case MCtype::MC1:
+				St[j] = MCPath1(St[j - 1], sigmat, rt, tt, rnd[i*(n - 1) + j - 1], n);
+				break;
+			case MCtype::MC2:
+				St[j] = MCPath2(St[j - 1], sigmat, rt, tt, rnd[i*(n - 1) + j - 1], n);
+				break;
+			default:
+				throw exception("unknown MC type: " + type);
+				break;
+			}
+		}
+
+		result[i + 1] = result[i] + exp(-rt * (T - tt))*(St[n - 1] - K)*((St[n - 1] > K) ? 1.0 : 0.0);
+		//if (St[n - 1] > K)
+		//res[i + 1] = res[i] + exp(-rt * (T - tt))*(St[n - 1] - K);
+	}
+
+	res = result[m] / m;
+	price = GetValue(res);
+	CalculateGradient();
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline double contract<type1, type2, type3, type4, type5>::GetPrice()
+{
+	return price;
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline double contract<type1, type2, type3, type4, type5>::GetDelta()
+{
+	return delta;
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline double contract<type1, type2, type3, type4, type5>::GetVega()
+{
+	return vega;
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline double contract<type1, type2, type3, type4, type5>::GetRho()
+{
+	return rho;
+}
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline double contract<type1, type2, type3, type4, type5>::GetTheta()
+{
+	return theta;
 }
 
 

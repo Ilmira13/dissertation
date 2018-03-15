@@ -1,8 +1,62 @@
 #include <BlackScholes.h>
 
+void Reset(double &var)
+{
+}
 
+void Reset(autodiff &var)
+{
+}
 
+void Reset(aad &var)
+{
+	var.Reset();
+}
 
+double GetValue(double &var)
+{
+	return var;
+}
+
+double GetValue(autodiff &var)
+{
+	return var.value;
+}
+
+double GetValue(aad &var)
+{
+	return var.GetVar()->GetValue();
+}
+
+double GetGrad(double &var, int n)
+{
+	return 0.0;
+}
+
+double GetGrad(autodiff &var, int n)
+{
+	return var.deriv[n];
+}
+
+double GetGrad(aad &var, int n)
+{
+	return var.GetGradient();
+}
+
+int GetVarsCount(double &var)
+{
+	return 1.0;
+}
+
+int GetVarsCount(autodiff &var)
+{
+	return size(var.deriv);
+}
+
+int GetVarsCount(aad &var)
+{
+	return 1.0;
+}
 
 vector<autodiff> d1(vector<autodiff> S, double &K, autodiff r, autodiff sigma, double &T, vector<autodiff> t)
 {

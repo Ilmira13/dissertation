@@ -12,8 +12,6 @@ void SpotTest(const int it, const int n)
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
-	double priceDBL;
-	autodiff priceAD;
 
 	clock_t time = clock();
 
@@ -32,12 +30,12 @@ void SpotTest(const int it, const int n)
 	cout << "AD function calculation time: ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
-		priceAD = P_AD.Price();
+		P_AD.Price();
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 	cout << "DBL function calculation time: ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
-		priceDBL = P_DBL.Price();
+		P_DBL.Price();
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
 	// finite-difference derivatives
@@ -45,11 +43,11 @@ void SpotTest(const int it, const int n)
 	cout << "FD derivatives calculation time: ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
-		derivsFD = P_DBL.FiniteDiff(priceDBL, S, 1);
+		derivsFD = P_DBL.FiniteDiff(S, 1);
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
-	cout << "DBL function value = " << priceDBL << endl;
-	cout << "AD function value = " << priceAD.value << endl;
+	cout << "DBL function value = " << P_DBL.GetPrice() << endl;
+	cout << "AD function value = " << P_AD.GetPrice() << endl;
 
 
 	// printing out derivative values: AD versus analytical vs FD
@@ -64,10 +62,11 @@ void SpotTest(const int it, const int n)
 
 	totalDelta = 0;
 	cout << "AD deltas:" << endl;
+	vector<double> deltas = P_AD.GetDeltas();
 	for (int i = 0; i < n; ++i) // in the case of this test we have n independent variables
 	{
-		totalDelta += priceAD.deriv[i];
-		cout << priceAD.deriv[i] << "\t";
+		totalDelta += deltas[i];
+		cout << deltas[i] << "\t";
 	}
 	cout << endl << "Portfolio AD total delta = " << totalDelta << endl;
 
@@ -84,6 +83,7 @@ void SpotTest(const int it, const int n)
 
 void AllVarTest(const int it, const int a)
 {
+	
 	double aS = 100; double bS = 500;
 	double aSigma = 0.15; double bSigma = 0.3;
 	double aR = 0.01; double bR = 0.04;
@@ -141,58 +141,83 @@ void AllVarTest(const int it, const int a)
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
 	portfolio<contract<autodiff, autodiff, autodiff, autodiff, autodiff>, autodiff> P_AD(contractsAD, "0");
 
-	cout << "Double Price: " << P_DBL.Price() << endl;
-	cout << "AD Price: " << P_AD.Price().value << endl;
+	P_DBL.Price();
+	P_AD.Price();
+
+	cout << "Double Price: " << P_DBL.GetPrice() << endl;
+	cout << "AD Price: " << P_AD.GetPrice() << endl;
 	
+	vector<double> aDeltas = P_DBL.Delta();
+	vector<double> deltas = P_AD.GetDeltas();
 
 	// delta, vega, rho, theta
 	cout << "Delta: Analytical vs. AD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Delta()[i] << " - " << P_AD.Price().deriv[i] << " = " << P_DBL.Delta()[i] - P_AD.Price().deriv[i] << endl;
+		cout << aDeltas[i] << " - " << deltas[i] << " = " << aDeltas[i] - deltas[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> aVegas = P_DBL.Vega();
+	vector<double> vegas = P_AD.GetVegas();
+
 	cout << "Vega: Analytical vs. AD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Vega()[i] << " - " << P_AD.Price().deriv[i + a] << " = " << P_DBL.Vega()[i] - P_AD.Price().deriv[i + a] << endl;
+		cout << aVegas[i] << " - " << vegas[i] << " = " << aVegas[i] - vegas[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> aRhos = P_DBL.Rho();
+	vector<double> rhos = P_AD.GetRhos();
+
 	cout << "Rho: Analytical vs. AD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Rho()[i] << " - " << P_AD.Price().deriv[i + 2*a] << " = " << P_DBL.Rho()[i] - P_AD.Price().deriv[i + 2*a] << endl;
+		cout << aRhos[i] << " - " << rhos[i] << " = " << aRhos[i] - rhos[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> aThetas = P_DBL.Theta();
+	vector<double> thetas = P_AD.GetThetas();
+
 	cout << "Theta: Analytical vs. AD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Theta()[i] << " - " << P_AD.Price().deriv[i + 3*a] << " = " << P_DBL.Theta()[i] - P_AD.Price().deriv[i + 3*a] << endl;
+		cout << aThetas[i] << " - " << thetas[i] << " = " << aThetas[i] - thetas[i] << endl;
 	}
 	cout << endl;
+
 	// delta, vega, rho, theta
+	vector<double> fDeltas = P_DBL.FiniteDiff(S, 1);
 	cout << "Delta: Analytical vs. FD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Delta()[i] << " - " << P_DBL.FiniteDiff(P_DBL.Price(), S, 1)[i] << " = " << P_DBL.Delta()[i] - P_DBL.FiniteDiff(P_DBL.Price(), S, 1)[i] << endl;
+		cout << aDeltas[i] << " - " << fDeltas[i] << " = " << aDeltas[i] - fDeltas[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> fVegas = P_DBL.FiniteDiff(sigma, 1);
 	cout << "Vega: Analytical vs. FD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Vega()[i] << " - " << P_DBL.FiniteDiff(P_DBL.Price(), sigma, 1)[i] << " = " << P_DBL.Vega()[i] - P_DBL.FiniteDiff(P_DBL.Price(), sigma, 1)[i] << endl;
+		cout << aVegas[i] << " - " << fVegas[i] << " = " << aVegas[i] - fVegas[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> fRhos = P_DBL.FiniteDiff(r, 1);
 	cout << "Rho: Analytical vs. FD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Rho()[i] << " - " << P_DBL.FiniteDiff(P_DBL.Price(), r, 1)[i] << " = " << P_DBL.Rho()[i] - P_DBL.FiniteDiff(P_DBL.Price(), r, 1)[i] << endl;
+		cout << aRhos[i] << " - " << fRhos[i] << " = " << aRhos[i] - fRhos[i] << endl;
 	}
 	cout << endl;
+
+	vector<double> fThetas = P_DBL.FiniteDiff(t, 1);
 	cout << "Theta: Analytical vs. FD: " << endl;
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_DBL.Theta()[i] << " - " << P_DBL.FiniteDiff(P_DBL.Price(), t, 1)[i] << " = " << P_DBL.Theta()[i] - P_DBL.FiniteDiff(P_DBL.Price(), t, 1)[i] << endl;
+		cout << aThetas[i] << " - " << fThetas[i] << " = " << aThetas[i] - fThetas[i] << endl;
 	}
 
 	clock_t time = clock();
@@ -201,19 +226,21 @@ void AllVarTest(const int it, const int a)
 		P_AD.Price();
 	}
 	cout << "AD calculation time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_DBL.Price();
 	}
 	cout << "DBL Price calculation time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
-		P_DBL.FiniteDiff(P_DBL.Price(), S, 1);
-		P_DBL.FiniteDiff(P_DBL.Price(), sigma, 1);
-		P_DBL.FiniteDiff(P_DBL.Price(), r, 1);
-		P_DBL.FiniteDiff(P_DBL.Price(), t, 1);
+		P_DBL.FiniteDiff(S, 1);
+		P_DBL.FiniteDiff(sigma, 1);
+		P_DBL.FiniteDiff(r, 1);
+		P_DBL.FiniteDiff(t, 1);
 	}
 	cout << "FD calculation time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
@@ -222,6 +249,7 @@ void AllVarTest(const int it, const int a)
 // contract <S, sigma, t, r, T, K>
 void MonteCarloTest(const int it, const int a, const int n, const int m)
 {
+	
 	// a - contracts
 	// n - days
 	// m - trajectories
@@ -253,7 +281,7 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 		P_DBL.Price();
 	}
 	cout << "DoubleAnalyticalPrice calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "DoubleAnalyticalPrice: " << P_DBL.Price() << endl;
+	cout << "DoubleAnalyticalPrice: " << P_DBL.GetPrice() << endl;
 	cout << "AnalyticalDelta: " << endl;
 	for (int i = 0; i < a; i++)
 	{
@@ -268,11 +296,12 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 		P_ADmc1.Price();
 	}
 	cout << "AD MC1 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AD MC1 Price: " << P_ADmc1.Price().value << endl;
+	cout << "AD MC1 Price: " << P_ADmc1.GetPrice() << endl;
 	cout << "AD MC1 Delta: " << endl;
+	vector<double> deltas = P_ADmc1.GetDeltas();
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_ADmc1.Price().deriv[i] << endl;
+		cout << deltas[i] << endl;
 	}
 	cout << endl;
 
@@ -280,14 +309,15 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
-		P_ADmc1.Price();
+		P_ADmc2.Price();
 	}
 	cout << "AD MC2 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AD MC2 Price: " << P_ADmc2.Price().value << endl;
+	cout << "AD MC2 Price: " << P_ADmc2.GetPrice() << endl;
 	cout << "AD MC2 Delta: " << endl;
+	deltas = P_ADmc2.GetDeltas();
 	for (int i = 0; i < a; i++)
 	{
-		cout << P_ADmc2.Price().deriv[i] << endl;
+		cout << deltas[i] << endl;
 	}
 	cout << endl;
 
@@ -298,14 +328,15 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 		P_DBLmc1.Price();
 	}
 	cout << "Double MC1 Price calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "Double MC1 Price: " << P_DBLmc1.Price() << endl;
-	cout << "Double MC1 FiniteDiff: " << endl;
+	cout << "Double MC1 Price: " << P_DBLmc1.GetPrice() << endl;
 	time = clock();
-	for (int i = 0; i < it; i++)
-	{
-		cout << P_DBLmc1.FiniteDiff(P_DBLmc1.Price(), S, 1)[i] << endl;
-	}
+	deltas = P_DBLmc1.FiniteDiff(S, 1);
 	cout << "Double MC1 FiniteDiff calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
+	cout << "Double MC1 FiniteDiff: " << endl;
+	for (int i = 0; i < size(contractsDBL); i++)
+	{
+		cout << deltas[i] << endl;
+	}
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
 	time = clock();
@@ -314,15 +345,16 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 		P_DBLmc2.Price();
 	}
 	cout << "Double MC2 Price calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "Double MC2 Price: " << P_DBLmc2.Price() << endl;
-	cout << "Double MC2 FiniteDiff: " << endl;
+	cout << "Double MC2 Price: " << P_DBLmc2.GetPrice() << endl;
 	time = clock();
-	for (int i = 0; i < it; i++)
-	{
-		cout << P_DBLmc2.FiniteDiff(P_DBLmc2.Price(), S, 1)[i] << endl;
-	}
+	deltas = P_DBLmc2.FiniteDiff(S, 1);
 	cout << "Double MC2 FiniteDiff calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-
+	cout << "Double MC2 FiniteDiff: " << endl;
+	for (int i = 0; i < size(contractsDBL); i++)
+	{
+		cout << deltas[i] << endl;
+	}
+	
 }
 
 void AADSpotTest(const int it, const int n)
@@ -336,8 +368,6 @@ void AADSpotTest(const int it, const int n)
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
-	double priceDBL;
-	aad priceAD;
 
 	clock_t time = clock();
 
@@ -354,66 +384,70 @@ void AADSpotTest(const int it, const int n)
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
 	portfolio<contract<aad, double, double, double, aad>, aad> P_AD(contractsAD, "0");
 
-	cout << "DBL function calculation time" << endl;
+	cout << "DBL function calculation time = ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
-		priceDBL = P_DBL.Price();
-	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
+		P_DBL.Price();
+	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
-	cout << "AAD function calculation time" << endl;
+	cout << "AAD function calculation time = ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
-		for (int j = 0; j < n; ++j)
-			SAAD[j].Reset();
-		priceAD.Reset();
-		priceAD = P_AD.Price();
+		//for (int j = 0; j < n; ++j)
+		//	SAAD[j].Reset();
+		//priceAD.Reset();
+		P_AD.Price();
 	}
-	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
+	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
 	// finite-difference derivatives
 	vector<double> derivsFD(n);
-	cout << "FD derivatives calculation time" << endl;
+	cout << "FD derivatives calculation time = ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
-		derivsFD = P_DBL.FiniteDiff(priceDBL, S, 1);
-	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+		derivsFD = P_DBL.FiniteDiff(S, 1);
+	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
 
-	cout << "DBL function value = " << priceDBL << endl;
-	cout << "AAD function value = " << priceAD.GetVar()->GetValue() << endl;
+	cout << "DBL function value = " << P_DBL.GetPrice() << endl;
+	cout << "AAD function value = " << P_AD.GetPrice() << endl;
 
 
 	// printing out derivative values: AD versus analytical vs FD
 	double totalDelta = 0;
-	cout << "Analytical deltas:" << endl;
+	//cout << "Analytical deltas:" << endl;
 	for (int i = 0; i < size(contractsDBL); ++i)
 	{
 		totalDelta += contractsDBL[i].Delta();
-		cout << contractsDBL[i].Delta() << "\t";
+		//cout << contractsDBL[i].Delta() << "\t";
 	}
 	cout << endl << "Portfolio analytical total delta = " << totalDelta << endl;
 
 	totalDelta = 0;
 	//priceAD.SetGradient(1.0);
-	cout << "AAD deltas:" << endl;
-	for (int i = 0; i < n; ++i) // in the case of this test we have n independent variables
+	//cout << "AAD deltas:" << endl;
+	vector<double> deltas;
+	deltas = P_AD.GetDeltas();
+	time = clock();
+	for (int i = 0; i < size(contractsAD); ++i) // in the case of this test we have n independent variables
 	{
-		double tmp = SAAD[i].GetGradient();
-		totalDelta += tmp;
-		cout << tmp << "\t";
+		//double tmp = SAAD[i].GetGradient();
+		//totalDelta += tmp;
+		totalDelta += deltas[i];
+		//cout << tmp << "\t";
 	}
 	cout << endl << "Portfolio AAD total delta = " << totalDelta << endl;
+	//cout << "AAD derivatives calculation time = ";
+	//cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
 	totalDelta = 0;
-	cout << "FD deltas:" << endl;
+	//cout << "FD deltas:" << endl;
 	for (int i = 0; i < n; ++i) // in the case of this test we have n independent variables
 	{
 		totalDelta += derivsFD[i];
-		cout << derivsFD[i] << "\t";
+		//cout << derivsFD[i] << "\t";
 	}
 	cout << endl << "Portfolio FD total delta = " << totalDelta << endl;
-
-	system("pause");
 }
 
 void AADMonteCarloTest(const int it, const int a, const int n, const int m)
@@ -424,109 +458,127 @@ void AADMonteCarloTest(const int it, const int a, const int n, const int m)
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
-	vector<aad> SAD = VarVectorAAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<aad> SAD1 = VarVectorAAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<aad> SAD2 = VarVectorAAD(aS, bS, a); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
-	aad price1, price2;
 
 	// compose 2 portfolios: one for double arguments and one for autodiff arguments
-	vector<contract<double, double, double, double, double> > contractsDBL;
-	vector<contract<aad, double, double, double, aad> > contractsAD;
+	vector<contract<double, double, double, double, double> > contractsDBL1, contractsDBL2;
+	vector<contract<aad, double, double, double, aad> > contractsAAD1, contractsAAD2;
 	for (int i = 0; i < a; i++)
 	{
-		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
-		contractsDBL.push_back(cDBL);
-		contract<aad, double, double, double, aad> cAD(&SAD[i], &Sigma, &t, &r, T, K);
-		contractsAD.push_back(cAD);
+		contract<double, double, double, double, double> cDBL1(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL1.push_back(cDBL1);
+		contract<double, double, double, double, double> cDBL2(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL2.push_back(cDBL2);
+		contract<aad, double, double, double, aad> cAD1(&SAD1[i], &Sigma, &t, &r, T, K);
+		contractsAAD1.push_back(cAD1);
+		contract<aad, double, double, double, aad> cAD2(&SAD2[i], &Sigma, &t, &r, T, K);
+		contractsAAD2.push_back(cAD2);
 	}
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
+	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL1, "0");
 	clock_t time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_DBL.Price();
 	}
-	cout << "DoubleAnalyticalPrice calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "DoubleAnalyticalPrice: " << P_DBL.Price() << endl;
-	cout << "AnalyticalDelta: " << endl;
-	for (int i = 0; i < a; i++)
-	{
-		cout << P_DBL.Delta()[i] << endl;
-	}
-	cout << endl;
-
-	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc1(contractsAD, "MC1", n, m);
-	time = clock();
-	for (int i = 0; i < it; i++)
-	{
-		price1 = P_ADmc1.Price();
-	}
-	cout << "AD MC1 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AD MC1 Price: " << price1.GetVar()->GetValue() << endl;
-	cout << "AD MC1 Delta: " << endl;
-	//price1.SetGradient(1.0);
+	cout << "Double Analytical Price calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	cout << "Double Analytical Price: " << P_DBL.GetPrice() << endl;
+	//cout << "Analytical Deltas: " << endl;
 	double totalDelta = 0.0;
 	for (int i = 0; i < a; i++)
 	{
-		double tmp = SAD[i].GetGradient();
+		double tmp = P_DBL.Delta()[i];
 		totalDelta += tmp;
-		cout << tmp << "\t";
+		//cout << tmp << endl;
 	}
-	cout << endl;
+	//cout << endl;
+	cout << "Cumulative Analytical Delta: " << totalDelta << endl;
 
-	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc2(contractsAD, "MC2", n, m);
+	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc1(contractsAAD1, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
-		price2 = P_ADmc1.Price();
+		P_ADmc1.Price(); // it is required to reset variables!
 	}
-	cout << "AD MC2 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AD MC2 Price: " << price2.GetVar()->GetValue() << endl;
-	cout << "AD MC2 Delta: " << endl;
-	//price2.SetGradient(1.0);
+	cout << "AAD MC1 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	cout << "AAD MC1 Price: " << P_ADmc1.GetPrice() << endl;
+	//cout << "AAD MC1 Deltas: " << endl;
+	//price1.SetGradient(1.0);
+	vector<double> deltas = P_ADmc1.GetDeltas();
 	totalDelta = 0.0;
-	for (int i = 0; i < a; i++)
+	for (int i = 0; i < size(deltas); i++)
 	{
-		double tmp = SAD[i].GetGradient();
-		totalDelta += tmp;
-		cout << tmp << "\t";
+		totalDelta += deltas[i];
+		//cout << tmp << "\t";
 	}
-	cout << endl;
+	//cout << endl;
+	cout << "Cumulative AAD MC1 Delta: " << totalDelta << endl;
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
+	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc2(contractsAAD2, "MC2", n, m);
+	time = clock();
+	for (int i = 0; i < it; i++)
+	{
+		P_ADmc2.Price();
+	}
+	cout << "AAD MC2 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	cout << "AAD MC2 Price: " << P_ADmc2.GetPrice() << endl;
+	//cout << "AAD MC2 Deltas: " << endl;
+	//price2.SetGradient(1.0);
+	deltas = P_ADmc2.GetDeltas();
+	totalDelta = 0.0;
+	for (int i = 0; i < size(deltas); i++)
+	{
+		totalDelta += deltas[i];
+		//cout << tmp << "\t";
+	}
+	//cout << endl;
+	cout << "Cumulative AAD MC2 Delta: " << totalDelta << endl;
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_DBLmc1.Price();
 	}
 	cout << "Double MC1 Price calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "Double MC1 Price: " << P_DBLmc1.Price() << endl;
-	cout << "Double MC1 FiniteDiff: " << endl;
+	cout << "Double MC1 Price: " << P_DBLmc1.GetPrice() << endl;
+	//cout << "Double MC1 FiniteDiff Deltas: " << endl;
 	time = clock();
-	for (int i = 0; i < it; i++)
+	deltas = P_DBLmc1.FiniteDiff(S, 1);
+	cout << "Double MC1 FiniteDiff calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	totalDelta = 0.0;
+	for (int i = 0; i < size(S); i++)
 	{
-		cout << P_DBLmc1.FiniteDiff(P_DBLmc1.Price(), S, 1)[i] << endl;
+		totalDelta += deltas[i];
+		//cout << tmp << "\t";
 	}
-	cout << "Double MC1 FiniteDiff calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
+	cout << "Cumulative MC1 FiniteDiff Delta: " << totalDelta << endl;
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL2, "MC2", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_DBLmc2.Price();
 	}
 	cout << "Double MC2 Price calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "Double MC2 Price: " << P_DBLmc2.Price() << endl;
-	cout << "Double MC2 FiniteDiff: " << endl;
+	cout << "Double MC2 Price: " << P_DBLmc2.GetPrice() << endl;
+	//cout << "Double MC2 FiniteDiff: " << endl;
+	totalDelta = 0.0;
 	time = clock();
-	for (int i = 0; i < it; i++)
-	{
-		cout << P_DBLmc2.FiniteDiff(P_DBLmc2.Price(), S, 1)[i] << endl;
-	}
+	deltas = P_DBLmc2.FiniteDiff(S, 1);
 	cout << "Double MC2 FiniteDiff calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	for (int i = 0; i < size(S); i++)
+	{
+		totalDelta += deltas[i];
+		//cout << tmp << "\t";
+	}
+	cout << "Cumulative MC2 FiniteDiff Delta: " << totalDelta << endl;
 
 }
 

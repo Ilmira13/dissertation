@@ -13,4 +13,5 @@ void AAD_division_test();
 void AAD_vs_autodiff_test();
 void AAD_several_runs_test();
 void AAD_recursion_test();
+void AAD_recursion_test2();
 void AAD_many_variables_test();

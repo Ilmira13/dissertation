@@ -7,6 +7,7 @@ void FunctionsTests()
 	double bumpSize = 0.0001;
 	double x = 0.0;
 
+	std::cout << "x = " << x << std::endl;
 	std::cout << "Function1 = max(0.0, x) + 100" << std::endl;
 
 	Functions<double> dblFunc1(FunctionNames::Function1, bumpSize);
@@ -59,11 +60,11 @@ void AAD_mult_test()
 	if (x1g == 2.0)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: multiplication test" << std::endl;
 	if (x2g == 1.0)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: multiplication test" << std::endl;
 }
 
 void AAD_sum_test()
@@ -82,11 +83,11 @@ void AAD_sum_test()
 	if (x1g == 1.0)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: summation test" << std::endl;
 	if (x2g == 1.0)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: summation test" << std::endl;
 }
 
 void AAD_division_test()
@@ -105,11 +106,11 @@ void AAD_division_test()
 	if (x1g == 0.5)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: division test" << std::endl;
 	if (x2g == -0.25)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: division test" << std::endl;
 }
 
 void AAD_vs_autodiff_test()
@@ -144,11 +145,11 @@ void AAD_vs_autodiff_test()
 	if (x1g == f2a.deriv[0])
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: AAD vs autodiff test" << std::endl;
 	if (x2g == f2a.deriv[1])
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: AAD vs autodiff test" << std::endl;
 }
 
 void AAD_several_runs_test()
@@ -175,11 +176,11 @@ void AAD_several_runs_test()
 	if (x1g == 0.5)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: several runs test" << std::endl;
 	if (x2g == -0.25)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: several runs test" << std::endl;
 }
 
 void AAD_recursion_test()
@@ -190,7 +191,7 @@ void AAD_recursion_test()
 
 	// calculations
 	aad f(0.0);
-	int n = 2;
+	int n = 10;
 	for (int i = 0; i < n; ++i)
 		f = f + x1 / x2;
 	//f.SetGradient(1.0);
@@ -198,14 +199,46 @@ void AAD_recursion_test()
 	double x1g = x1.GetGradient();
 	double x2g = x2.GetGradient();
 
-	if (x1g == 1.0)
+	if (x1g == 0.5 * n)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
-	if (x2g == -0.5)
+		std::cout << "ERR: recursion test" << std::endl;
+	if (x2g == -0.25 * n)
 		std::cout << "OK" << std::endl;
 	else
-		std::cout << "ERR" << std::endl;
+		std::cout << "ERR: recursion test" << std::endl;
+}
+
+void AAD_recursion_test2()
+{
+	// variables
+	aad x1(1);
+	double r = 0.1;
+
+	// calculations
+	int n = 10;
+	for (int i = 1; i < n; ++i)
+		x1 = x1 * r;
+	//f.SetGradient(1.0);
+
+	double x1g = x1.GetGradient();
+
+	if (x1g == pow(r, n - 1))
+		std::cout << "OK" << std::endl;
+	else
+		std::cout << "OK: recursion test #2 - attempt 1 failed" << std::endl; // this test should fail
+
+	aad x2(1);
+	vector<aad> f2(n, x2);
+	for (int i = 1; i < n; ++i)
+		f2[i] = f2[i - 1] * r;
+
+	double x2g = f2[0].GetGradient();
+
+	if (x2g == pow(r, n - 1))
+		std::cout << "OK" << std::endl;
+	else
+		std::cout << "ERR: recursion test #2 - attempt 2" << std::endl; // this test should pass
 }
 
 void AAD_many_variables_test()
@@ -229,7 +262,7 @@ void AAD_many_variables_test()
 		if (x[i].GetGradient() == (n - i))
 			std::cout << "OK" << std::endl;
 		else
-			std::cout << "ERR" << std::endl;
+			std::cout << "ERR: many variables test" << std::endl;
 	}
 }
 
@@ -243,6 +276,7 @@ void AAD_tests()
 
 	AAD_several_runs_test();
 	AAD_recursion_test();
+	AAD_recursion_test2();
 	AAD_many_variables_test();
 }
 

@@ -108,6 +108,16 @@ aad::aad(const adjoint &a)
 	var = new adjoint(a);
 }
 
+/*aad::aad(const aad &a)
+{
+	var = new adjoint(*a.var);
+}
+
+aad::aad(aad &a)
+{
+	var = new adjoint(*a.var);
+}*/
+
 aad::~aad()
 {
 	//delete var;
@@ -120,6 +130,7 @@ void aad::operator = (aad &c)
 	this->var = new adjoint(c.var->value);
 	c.var->weights.push_back(1.0);
 	c.var->tape.push_back(*this);
+	//this->var = c.var;
 }
 
 void aad::operator=(double c)
@@ -131,12 +142,15 @@ void aad::operator=(double c)
 
 aad aad::operator += (aad &a)
 {
-	aad res(this->var->value + a.var->value);
-	this->var->weights.push_back(1.0);
-	this->var->tape.push_back(res);
+	//aad res(this->var->value + a.var->value);
+	//this->var->weights.push_back(1.0);
+	//this->var->tape.push_back(res);
+	//a.var->weights.push_back(1.0);
+	//a.var->tape.push_back(res);
+	this->var->value += a.var->value;
 	a.var->weights.push_back(1.0);
-	a.var->tape.push_back(res);
-	return res;
+	a.var->tape.push_back(*this);
+	return *this;
 }
 
 aad aad::operator += (const double &c)
@@ -145,6 +159,27 @@ aad aad::operator += (const double &c)
 	return *this;
 }
 
+
+aad aad::operator *= (aad &a)
+{
+	//aad res(this->var->value + a.var->value);
+	//this->var->weights.push_back(1.0);
+	//this->var->tape.push_back(res);
+	//a.var->weights.push_back(1.0);
+	//a.var->tape.push_back(res);
+	this->var->value *= a.var->value;
+	a.var->weights.push_back(a.var->value);
+	a.var->tape.push_back(*this);
+	return *this;
+}
+
+aad aad::operator *= (const double &c)
+{
+	this->var->value *= c;
+	this->var->weights.push_back(c);
+	this->var->tape.push_back(*this);
+	return *this;
+}
 
 
 aad operator + (aad  &c)
@@ -177,6 +212,7 @@ aad aad::operator * (const double &c)
 	this->var->tape.push_back(res);
 	return res;
 }
+
 aad operator * (const double c, aad &f)
 {
 	aad res(f.var->GetValue() * c);
@@ -184,6 +220,22 @@ aad operator * (const double c, aad &f)
 	f.var->AppendToTape(res);
 	return res;
 }
+/*aad operator * (aad &f, const double c)
+{
+	aad res(f.var->GetValue() * c);
+	f.var->AppendToWeights(c);
+	f.var->AppendToTape(res);
+	return res;
+}
+aad operator * (aad &a, aad &f)
+{
+	aad res(f.var->GetValue() * a.var->GetValue());
+	a.var->AppendToWeights(f.var->GetValue());
+	a.var->AppendToTape(res);
+	f.var->AppendToWeights(a.var->GetValue());
+	f.var->AppendToTape(res);
+	return res;
+}*/
 
 aad  aad::operator / (aad &c)
 {
@@ -201,6 +253,7 @@ aad aad::operator / (const double &c)
 	this->var->tape.push_back(res);
 	return res;
 }
+
 aad operator / (const double c, aad &f)
 {
 	aad res(c / f.GetVar()->GetValue());
@@ -208,6 +261,22 @@ aad operator / (const double c, aad &f)
 	f.GetVar()->AppendToTape(res);
 	return res;
 }
+/*aad operator / (aad &f, const double c)
+{
+	aad res(c / f.GetVar()->GetValue());
+	f.GetVar()->AppendToWeights(-c / f.GetVar()->GetValue() / f.GetVar()->GetValue());
+	f.GetVar()->AppendToTape(res);
+	return res;
+}
+aad operator / (aad &a, aad &f)
+{
+	aad res(a.GetVar()->GetValue() / f.GetVar()->GetValue());
+	a.GetVar()->AppendToWeights(1.0 / f.GetVar()->GetValue());
+	a.GetVar()->AppendToTape(res);
+	f.GetVar()->AppendToWeights(-a.GetVar()->GetValue() / f.GetVar()->GetValue() / f.GetVar()->GetValue());
+	f.GetVar()->AppendToTape(res);
+	return res;
+}*/
 
 aad operator + (aad &c, aad &f)
 {

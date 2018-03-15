@@ -57,7 +57,11 @@ private:
 	friend vector<double> operator / (const vector<double> h, const double &u);
 
 	friend aad operator * (const double c, aad &f);
+	//friend aad operator * (aad &f, const double c);
+	//friend aad operator * (aad &a, aad &f);
 	friend aad operator / (const double c, aad &f);
+	//friend aad operator / (aad &f, const double c);
+	//friend aad operator / (aad &a, aad &f);
 
 	friend aad operator + (aad &c, aad &f);
 	friend aad operator + (const double c, aad &f);
@@ -83,12 +87,17 @@ public:
 	aad();
 	aad(double);
 	aad(const adjoint&);
+	//aad(const aad &a);
+	//aad(aad &a);
 	~aad();
 	void operator = (aad &c);
 	void operator = (double);
 
-	aad operator += (aad &);
-	aad operator += (const double&);
+	aad operator += (aad &); // does not work
+	aad operator += (const double&); // does not work
+
+	aad operator *= (aad &); // does not work
+	aad operator *= (const double&); // does not work
 
 	aad operator * (aad &);
 	aad  operator * (const double&);

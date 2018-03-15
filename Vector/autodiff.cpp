@@ -162,10 +162,10 @@ autodiff::autodiff(double a)
 	deriv = f;
 }
 
-autodiff::autodiff(double value, int derivsCnt)
+autodiff::autodiff(double val, int derivsCnt)
 {
 	vector<double> f(derivsCnt);
-	value = value;
+	value = val;
 	deriv = f;
 }
 

@@ -13,24 +13,35 @@ using namespace std;
 template<typename contracttype, typename resulttype> class portfolio
 {
 private:
+	double price;
+	vector<double> deltas;
+	vector<double> vegas;
+	vector<double> rhos;
+	vector<double> thetas;
 	int j; // time
 	int m; // trajectory
 	string PricingMethod;
 	vector<contracttype> contracts;
-	resulttype CalculatePPrice();
-	resulttype CalculatePPriceMC1(int, int);
-	resulttype CalculatePPriceMC2(int, int);
+	void CalculatePPrice();
+	void CalculatePPriceMC1(int, int, bool useTheSameRndSequence=false);
+	void CalculatePPriceMC2(int, int, bool useTheSameRndSequence=false);
 
 public:
 	portfolio();
 	portfolio(vector<contracttype> &, string);
 	portfolio(vector<contracttype> &, string, int, int);
-	resulttype Price();
-	vector<resulttype> FiniteDiff (double, vector<double> &, int);
+	void Price(bool useTheSameRndSequence=false);
+	vector<double> FiniteDiff (vector<double> &, int);
 	vector<resulttype> Delta();
 	vector<resulttype> Vega();
 	vector<resulttype> Theta();
 	vector<resulttype> Rho();
+
+	double GetPrice();
+	vector<double> GetDeltas();
+	vector<double> GetVegas();
+	vector<double> GetRhos();
+	vector<double> GetThetas();
 };
 
 template<typename contracttype, typename resulttype> inline portfolio<contracttype, resulttype>::portfolio() 
@@ -42,6 +53,10 @@ template<typename contracttype, typename resulttype> inline portfolio<contractty
 {
 	contracts = iContracts;
 	PricingMethod = str;
+	deltas.resize(size(contracts));
+	vegas.resize(size(contracts));
+	rhos.resize(size(contracts));
+	thetas.resize(size(contracts));
 }
 
 template<typename contracttype, typename resulttype>
@@ -49,75 +64,96 @@ inline portfolio<contracttype, resulttype>::portfolio(vector<contracttype>&iCont
 {
 	contracts = iContracts;
 	PricingMethod = str;
+	deltas.resize(size(contracts));
+	vegas.resize(size(contracts));
+	rhos.resize(size(contracts));
+	thetas.resize(size(contracts));
 	j = jj;
 	m = mm;
 }
 
 template<typename contracttype, typename resulttype>
-inline resulttype portfolio<contracttype, resulttype>::Price()
+inline void portfolio<contracttype, resulttype>::Price(bool useTheSameRndSequence)
 {
 	if (PricingMethod == "MC1")
 	{
-		return this->CalculatePPriceMC1(j, m);
+		this->CalculatePPriceMC1(j, m, useTheSameRndSequence);
 	}
 	else if (PricingMethod == "MC2")
 	{
-		return this->CalculatePPriceMC2(j, m);
+		this->CalculatePPriceMC2(j, m, useTheSameRndSequence);
 	}
 	else 
-		return this->CalculatePPrice();
+		this->CalculatePPrice();
 }
 
 
 template<typename contracttype, typename resulttype>
-inline resulttype portfolio<contracttype, resulttype>::CalculatePPrice()
+inline void portfolio<contracttype, resulttype>::CalculatePPrice()
 {
-	resulttype res = (resulttype)contracts[0].CalculatePrice();
-	for (int i = 1; i < size(contracts); ++i)
+	price = 0.0;
+	for (int i = 0; i < size(contracts); ++i)
 	{
-		res = res + (resulttype)contracts[i].CalculatePrice();
+		contracts[i].CalculatePrice();
+		price = price + contracts[i].GetPrice();
+		deltas[i] = contracts[i].GetDelta();
+		vegas[i] = contracts[i].GetVega();
+		rhos[i] = contracts[i].GetRho();
+		thetas[i] = contracts[i].GetTheta();
 	}
-	return res;
 }
 
 template<typename contracttype, typename resulttype>
-inline resulttype portfolio<contracttype, resulttype>::CalculatePPriceMC1(int j, int m)
+inline void portfolio<contracttype, resulttype>::CalculatePPriceMC1(int j, int m, bool useTheSameRndSequence)
 {
-	resulttype res = (resulttype)contracts[0].CalculatePriceMC1(j, m);
-	for (int i = 1; i < size(contracts); ++i)
+	price = 0.0;
+	for (int i = 0; i < size(contracts); ++i)
 	{
-		res = res + (resulttype)contracts[i].CalculatePriceMC1(j, m);
+		contracts[i].CalculatePriceMC(j, m, MCtype::MC1, useTheSameRndSequence);
+		price = price + contracts[i].GetPrice();
+		deltas[i] = contracts[i].GetDelta();
+		vegas[i] = contracts[i].GetVega();
+		rhos[i] = contracts[i].GetRho();
+		thetas[i] = contracts[i].GetTheta();
 	}
-	return res;
 }
 
 template<typename contracttype, typename resulttype>
-inline resulttype portfolio<contracttype, resulttype>::CalculatePPriceMC2(int j, int m)
+inline void portfolio<contracttype, resulttype>::CalculatePPriceMC2(int j, int m, bool useTheSameRndSequence)
 {
-	resulttype res = (resulttype)contracts[0].CalculatePriceMC2(j, m);
-	for (int i = 1; i < size(contracts); ++i)
+	price = 0.0;
+	for (int i = 0; i < size(contracts); ++i)
 	{
-		res = res + (resulttype)contracts[i].CalculatePriceMC2(j, m);
+		contracts[i].CalculatePriceMC(j, m, MCtype::MC2, useTheSameRndSequence);
+		price = price + contracts[i].GetPrice();
+		deltas[i] = contracts[i].GetDelta();
+		vegas[i] = contracts[i].GetVega();
+		rhos[i] = contracts[i].GetRho();
+		thetas[i] = contracts[i].GetTheta();
 	}
-	return res;
 }
 
 
 template<typename contracttype, typename resulttype>
-inline vector<resulttype> portfolio<contracttype, resulttype>::FiniteDiff(double priceDBL, vector<double> &var, int bmp)
+inline vector<double> portfolio<contracttype, resulttype>::FiniteDiff(vector<double> &var, int bmp)
 {
-	vector<double> derivsFD(size(contracts));
+	this->Price(true);
 	double tmp = 0;
-	double bump = double(bmp)/100;
+	double bump = double(bmp) / 100;
+	double priceBase = 0.0;
 
-		for (int i = 0; i < size(contracts); ++i)
-		{
-			tmp = var[i];
-			var[i] = var[i] * (1 + bump);
-			derivsFD[i] = (this->Price() - priceDBL) / (var[i] - tmp);
-			var[i] = tmp;
-		}
-	return derivsFD;
+	vector<double> derivs(size(var), 0.0);
+	for (int i = 0; i < size(var); ++i) // derivative by contract or by spot?????
+	{
+		tmp = var[i];
+		priceBase = price;
+		var[i] = var[i] * (1 + bump);
+		this->Price(true);
+		derivs[i] = (price - priceBase) / (var[i] - tmp); // for MC we should use the same seed!
+		var[i] = tmp;
+		price = priceBase;
+	}
+	return derivs;
 }
 
 template<typename contracttype, typename resulttype>
@@ -163,4 +199,34 @@ inline vector<resulttype> portfolio<contracttype, resulttype>::Rho()
 		delta[i] = contracts[i].Rho();
 	}
 	return delta;
+}
+
+template<typename contracttype, typename resulttype>
+inline double portfolio<contracttype, resulttype>::GetPrice()
+{
+	return price;
+}
+
+template<typename contracttype, typename resulttype>
+inline vector<double> portfolio<contracttype, resulttype>::GetDeltas()
+{
+	return deltas;
+}
+
+template<typename contracttype, typename resulttype>
+inline vector<double> portfolio<contracttype, resulttype>::GetVegas()
+{
+	return vegas;
+}
+
+template<typename contracttype, typename resulttype>
+inline vector<double> portfolio<contracttype, resulttype>::GetRhos()
+{
+	return rhos;
+}
+
+template<typename contracttype, typename resulttype>
+inline vector<double> portfolio<contracttype, resulttype>::GetThetas()
+{
+	return thetas;
 }
