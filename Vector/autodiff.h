@@ -32,9 +32,7 @@ class autodiff
 	friend autodiff operator - (const double c, const autodiff &f);
 	friend autodiff operator - (const autodiff &f, const double c);
 	friend autodiff operator - (const autodiff &c); 
-
-
-
+	
 	friend autodiff sin(autodiff &f);
 	friend autodiff cos(autodiff &f);
 	friend autodiff log(autodiff &f);
@@ -44,19 +42,16 @@ class autodiff
 	friend double N(const double &f); // standart normal distribution 
 	friend double dN(const double &f); // density
 
-
 public:
 	double  value; 
 	vector<double>  deriv;
-
 	autodiff(double, vector<double>); 
 	autodiff();
 	autodiff(double, int);
 	autodiff(double);
 	void operator = (autodiff &c);
 	void operator = (double);
-
-
+	
 	autodiff operator * (const autodiff &);
 	autodiff  operator * (const double &);
 
@@ -72,9 +67,6 @@ public:
 	bool operator >= (const double &) const;
 	bool operator < (const double &) const;
 	bool operator <= (const double &) const;
-
-
-
 };
 
 #endif

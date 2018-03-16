@@ -14,8 +14,8 @@ vector<double> operator + (const vector<double> u)
 
 vector<double> operator - (const vector<double> u)
 {
-	vector<double> uu(u.size());
-	for (int i = 0; i < u.size(); i++)
+	vector<double> uu(size(u));
+	for (int i = 0; i < size(u); i++)
 	{
 		uu[i] = -u[i];
 	}
