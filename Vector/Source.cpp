@@ -13,13 +13,13 @@ int main() {
 	//cout << "AllVarTest---------------------------------------------------------" << endl;
 	//AllVarTest(100, 4);
 	//cout << "SpotTest---------------------------------------------------------" << endl;
-	SpotTest(100, 4);
+	//SpotTest(1, 4);
 	//FunctionsTests();
-	//AAD_tests();
-	//AADSpotTest(10, 40);
-	//AADSpotTest(1, 1);
-	//AADSpotTest(100, 50); // 50 variables can show the difference
-	//AADMonteCarloTest(1, 1, 100, 1000); //const int it, const int a, const int n, const int m
+	//ReverseAD_tests();
+	//ReverseADSpotTest(10, 40);
+	ReverseADSpotTest(1, 5);
+	//ReverseADSpotTest(100, 50); // 50 variables can show the difference
+    //ReverseADMonteCarloTest(1, 1, 100, 1000); //const int it, const int a, const int n, const int m
 	system("pause");
 	return 0;
 

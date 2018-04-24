@@ -6,7 +6,7 @@ void SpotTest(const int it, const int n)
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, n);
-	vector<autodiff> SAD = VarVectorAD(aS, bS, n); // will not work if we have other AD variables except S
+	vector<ForwardAD> SAD = VarVectorAD(aS, bS, n); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
@@ -15,18 +15,18 @@ void SpotTest(const int it, const int n)
 
 	clock_t time = clock();
 
-	// compose 2 portfolios: one for double arguments and one for autodiff arguments
+	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
 	vector<contract<double, double, double, double, double> > contractsDBL;
-	vector<contract<autodiff, double, double, double, autodiff> > contractsAD;
+	vector<contract<ForwardAD, double, double, double, ForwardAD> > contractsAD;
 	for (int i = 0; i < n; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL.push_back(cDBL);
-		contract<autodiff, double, double, double, autodiff> cAD(&SAD[i], &Sigma, &t, &r, T, K);
+		contract<ForwardAD, double, double, double, ForwardAD> cAD(&SAD[i], &Sigma, &t, &r, T, K);
 		contractsAD.push_back(cAD);
 	}
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
-	portfolio<contract<autodiff, double, double, double, autodiff>, autodiff> P_AD(contractsAD, "0");
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_AD(contractsAD, "0");
 	cout << "AD function calculation time: ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
@@ -79,6 +79,8 @@ void SpotTest(const int it, const int n)
 	}
 	cout << endl << "Portfolio AD total delta = " << totalDelta << endl;
 
+	cout << deltas[0] << endl;
+	cout << deltas[2] << endl;
 }
 
 void AllVarTest(const int it, const int a)
@@ -90,10 +92,10 @@ void AllVarTest(const int it, const int a)
 	double aT = 1. / 365;
 	double K = 300;
 	double T = 1;
-	vector<double> S = VarVector(aS, bS, a); vector<autodiff>  SAD = VarVectorAD(aS, bS, a);
-	vector<double> sigma = VarVector(aSigma, bSigma, a); vector<autodiff> sigmaAD = VarVectorAD(aSigma, bSigma, a);
-	vector<double> 	r = VarVector(aR, bR, a); vector<autodiff>  rAD = VarVectorAD(aR, bR, a);
-	vector<double> t = VarVector(aT, aT, a); vector<autodiff> tAD = VarVectorAD(aT, aT, a);
+	vector<double> S = VarVector(aS, bS, a); vector<ForwardAD>  SAD = VarVectorAD(aS, bS, a);
+	vector<double> sigma = VarVector(aSigma, bSigma, a); vector<ForwardAD> sigmReverseAD = VarVectorAD(aSigma, bSigma, a);
+	vector<double> 	r = VarVector(aR, bR, a); vector<ForwardAD>  rAD = VarVectorAD(aR, bR, a);
+	vector<double> t = VarVector(aT, aT, a); vector<ForwardAD> tAD = VarVectorAD(aT, aT, a);
 	vector<vector<double>> derivs(4 * a);
 	for (int i = 0; i < size(derivs); i++)
 	{
@@ -114,7 +116,7 @@ void AllVarTest(const int it, const int a)
 		}
 		else if (double(i + 1) / size(derivs) > 0.25 && double(i + 1) / size(derivs) <= 0.5)
 		{
-			sigmaAD[g2].deriv = derivs[i]; g2++; 
+			sigmReverseAD[g2].deriv = derivs[i]; g2++; 
 	    }
 		else if (double(i + 1) / size(derivs) > 0.5 && double(i + 1) / size(derivs) <= 0.75)
 		{
@@ -126,20 +128,20 @@ void AllVarTest(const int it, const int a)
 		}
 	}
 
-	// compose 2 portfolios: one for double arguments and one for autodiff arguments
+	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
 	vector<contract<double, double, double, double, double>> contractsDBL;
-	vector<contract<autodiff, autodiff, autodiff, autodiff, autodiff>> contractsAD;
+	vector<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>> contractsAD;
 	for (int i = 0; i < a; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &sigma[i], &t[i], &r[i], T, K);
 		contractsDBL.push_back(cDBL);
-		contract<autodiff, autodiff, autodiff, autodiff, autodiff> cAD(&SAD[i], &sigmaAD[i], &tAD[i], &rAD[i], T, K);
-		//contract<autodiff, double, double, double, autodiff> cAD(&SAD[i], &sigma[i], &t[i], &r[i], T, K);
+		contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD> cAD(&SAD[i], &sigmReverseAD[i], &tAD[i], &rAD[i], T, K);
+		//contract<ForwardAD, double, double, double, ForwardAD> cAD(&SAD[i], &sigma[i], &t[i], &r[i], T, K);
 		contractsAD.push_back(cAD);
 	}
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
-	portfolio<contract<autodiff, autodiff, autodiff, autodiff, autodiff>, autodiff> P_AD(contractsAD, "0");
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_AD(contractsAD, "0");
 
 	P_DBL.Price();
 	P_AD.Price();
@@ -249,28 +251,27 @@ void AllVarTest(const int it, const int a)
 // contract <S, sigma, t, r, T, K>
 void MonteCarloTest(const int it, const int a, const int n, const int m)
 {
-	
 	// a - contracts
 	// n - days
 	// m - trajectories
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
-	vector<autodiff> SAD = VarVectorAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<ForwardAD> SAD = VarVectorAD(aS, bS, a); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
 
-	// compose 2 portfolios: one for double arguments and one for autodiff arguments
+	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
 	vector<contract<double, double, double, double, double> > contractsDBL;
-	vector<contract<autodiff, double, double, double, autodiff> > contractsAD;
+	vector<contract<ForwardAD, double, double, double, ForwardAD> > contractsAD;
 	for (int i = 0; i < a; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL.push_back(cDBL);
-		contract<autodiff, double, double, double, autodiff> cAD(&SAD[i], &Sigma, &t, &r, T, K);
+		contract<ForwardAD, double, double, double, ForwardAD> cAD(&SAD[i], &Sigma, &t, &r, T, K);
 		contractsAD.push_back(cAD);
 	}
 
@@ -289,7 +290,7 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 	}
 	cout << endl;
 
-	portfolio<contract<autodiff, double, double, double, autodiff>, autodiff> P_ADmc1(contractsAD, "MC1", n, m);
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_ADmc1(contractsAD, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -305,7 +306,7 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 	}
 	cout << endl;
 
-	portfolio<contract<autodiff, double, double, double, autodiff>, autodiff> P_ADmc2(contractsAD, "MC2", n, m);
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_ADmc2(contractsAD, "MC2", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -357,12 +358,12 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 	
 }
 
-void AADSpotTest(const int it, const int n)
+void ReverseADSpotTest(const int it, const int n)
 {
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, n);
-	vector<aad> SAAD = VarVectorAAD(aS, bS, n);
+	vector<ReverseAD> SReverseAD = VarVectorReverseAD(aS, bS, n);
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
@@ -371,18 +372,18 @@ void AADSpotTest(const int it, const int n)
 
 	clock_t time = clock();
 
-	// compose 2 portfolios: one for double arguments and one for autodiff arguments
+	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
 	vector<contract<double, double, double, double, double> > contractsDBL;
-	vector<contract<aad, double, double, double, aad> > contractsAD;
+	vector<contract<ReverseAD, double, double, double, ReverseAD> > contractsReverseAD;
 	for (int i = 0; i < n; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL.push_back(cDBL);
-		contract<aad, double, double, double, aad> cAD(&SAAD[i], &Sigma, &t, &r, T, K);
-		contractsAD.push_back(cAD);
+		contract<ReverseAD, double, double, double, ReverseAD> cReverseAD(&SReverseAD[i], &Sigma, &t, &r, T, K);
+		contractsReverseAD.push_back(cReverseAD);
 	}
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
-	portfolio<contract<aad, double, double, double, aad>, aad> P_AD(contractsAD, "0");
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_ReverseAD(contractsReverseAD, "0");
 
 	cout << "DBL function calculation time = ";
 	time = clock();
@@ -390,14 +391,14 @@ void AADSpotTest(const int it, const int n)
 		P_DBL.Price();
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
-	cout << "AAD function calculation time = ";
+	cout << "ReverseAD function calculation time = ";
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
 		//for (int j = 0; j < n; ++j)
-		//	SAAD[j].Reset();
+		//	SReverseAD[j].Reset();
 		//priceAD.Reset();
-		P_AD.Price();
+		P_ReverseAD.Price();
 	}
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
@@ -410,7 +411,7 @@ void AADSpotTest(const int it, const int n)
 	cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl << endl;
 
 	cout << "DBL function value = " << P_DBL.GetPrice() << endl;
-	cout << "AAD function value = " << P_AD.GetPrice() << endl;
+	cout << "ReverseAD function value = " << P_ReverseAD.GetPrice() << endl;
 
 
 	// printing out derivative values: AD versus analytical vs FD
@@ -425,19 +426,19 @@ void AADSpotTest(const int it, const int n)
 
 	totalDelta = 0;
 	//priceAD.SetGradient(1.0);
-	//cout << "AAD deltas:" << endl;
+	//cout << "ReverseAD deltas:" << endl;
 	vector<double> deltas;
-	deltas = P_AD.GetDeltas();
+	deltas = P_ReverseAD.GetDeltas();
 	time = clock();
-	for (int i = 0; i < size(contractsAD); ++i) // in the case of this test we have n independent variables
+	for (int i = 0; i < size(contractsReverseAD); ++i) // in the case of this test we have n independent variables
 	{
-		//double tmp = SAAD[i].GetGradient();
+		//double tmp = SReverseAD[i].GetGradient();
 		//totalDelta += tmp;
 		totalDelta += deltas[i];
 		//cout << tmp << "\t";
 	}
-	cout << endl << "Portfolio AAD total delta = " << totalDelta << endl;
-	//cout << "AAD derivatives calculation time = ";
+	cout << endl << "Portfolio ReverseAD total delta = " << totalDelta << endl;
+	//cout << "ReverseAD derivatives calculation time = ";
 	//cout << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
 
 	totalDelta = 0;
@@ -448,9 +449,11 @@ void AADSpotTest(const int it, const int n)
 		//cout << derivsFD[i] << "\t";
 	}
 	cout << endl << "Portfolio FD total delta = " << totalDelta << endl;
+
+
 }
 
-void AADMonteCarloTest(const int it, const int a, const int n, const int m)
+void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m)
 {
 	// a - contracts
 	// n - days
@@ -458,27 +461,27 @@ void AADMonteCarloTest(const int it, const int a, const int n, const int m)
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
-	vector<aad> SAD1 = VarVectorAAD(aS, bS, a); // will not work if we have other AD variables except S
-	vector<aad> SAD2 = VarVectorAAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<ReverseAD> SAD1 = VarVectorReverseAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<ReverseAD> SAD2 = VarVectorReverseAD(aS, bS, a); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
 
-	// compose 2 portfolios: one for double arguments and one for autodiff arguments
+	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
 	vector<contract<double, double, double, double, double> > contractsDBL1, contractsDBL2;
-	vector<contract<aad, double, double, double, aad> > contractsAAD1, contractsAAD2;
+	vector<contract<ReverseAD, double, double, double, ReverseAD> > contractsReverseAD1, contractsReverseAD2;
 	for (int i = 0; i < a; i++)
 	{
 		contract<double, double, double, double, double> cDBL1(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL1.push_back(cDBL1);
 		contract<double, double, double, double, double> cDBL2(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL2.push_back(cDBL2);
-		contract<aad, double, double, double, aad> cAD1(&SAD1[i], &Sigma, &t, &r, T, K);
-		contractsAAD1.push_back(cAD1);
-		contract<aad, double, double, double, aad> cAD2(&SAD2[i], &Sigma, &t, &r, T, K);
-		contractsAAD2.push_back(cAD2);
+		contract<ReverseAD, double, double, double, ReverseAD> cAD1(&SAD1[i], &Sigma, &t, &r, T, K);
+		contractsReverseAD1.push_back(cAD1);
+		contract<ReverseAD, double, double, double, ReverseAD> cAD2(&SAD2[i], &Sigma, &t, &r, T, K);
+		contractsReverseAD2.push_back(cAD2);
 	}
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL1, "0");
@@ -500,15 +503,15 @@ void AADMonteCarloTest(const int it, const int a, const int n, const int m)
 	//cout << endl;
 	cout << "Cumulative Analytical Delta: " << totalDelta << endl;
 
-	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc1(contractsAAD1, "MC1", n, m);
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_ADmc1(contractsReverseAD1, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_ADmc1.Price(); // it is required to reset variables!
 	}
-	cout << "AAD MC1 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AAD MC1 Price: " << P_ADmc1.GetPrice() << endl;
-	//cout << "AAD MC1 Deltas: " << endl;
+	cout << "ReverseAD MC1 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC1 Price: " << P_ADmc1.GetPrice() << endl;
+	//cout << "ReverseAD MC1 Deltas: " << endl;
 	//price1.SetGradient(1.0);
 	vector<double> deltas = P_ADmc1.GetDeltas();
 	totalDelta = 0.0;
@@ -518,17 +521,17 @@ void AADMonteCarloTest(const int it, const int a, const int n, const int m)
 		//cout << tmp << "\t";
 	}
 	//cout << endl;
-	cout << "Cumulative AAD MC1 Delta: " << totalDelta << endl;
+	cout << "Cumulative ReverseAD MC1 Delta: " << totalDelta << endl;
 
-	portfolio<contract<aad, double, double, double, aad>, aad> P_ADmc2(contractsAAD2, "MC2", n, m);
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_ADmc2(contractsReverseAD2, "MC2", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
 		P_ADmc2.Price();
 	}
-	cout << "AAD MC2 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
-	cout << "AAD MC2 Price: " << P_ADmc2.GetPrice() << endl;
-	//cout << "AAD MC2 Deltas: " << endl;
+	cout << "ReverseAD MC2 calculation time: " << (clock() - time) / (double)CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC2 Price: " << P_ADmc2.GetPrice() << endl;
+	//cout << "ReverseAD MC2 Deltas: " << endl;
 	//price2.SetGradient(1.0);
 	deltas = P_ADmc2.GetDeltas();
 	totalDelta = 0.0;
@@ -538,7 +541,7 @@ void AADMonteCarloTest(const int it, const int a, const int n, const int m)
 		//cout << tmp << "\t";
 	}
 	//cout << endl;
-	cout << "Cumulative AAD MC2 Delta: " << totalDelta << endl;
+	cout << "Cumulative ReverseAD MC2 Delta: " << totalDelta << endl;
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
 	time = clock();

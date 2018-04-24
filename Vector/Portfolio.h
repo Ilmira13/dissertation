@@ -1,12 +1,12 @@
 #pragma once
-#include <autodiff.h>
-#include <AAD.h>
+#include <ForwardAD.h>
+#include <ReverseAD.h>
 #include <BlackScholes.h>
 
-vector<autodiff> VarVectorAD(double &a, double &b, const int n);
-vector<aad> VarVectorAAD(double &a, double &b, const int n);
+vector<ForwardAD> VarVectorAD(double &a, double &b, const int n);
+vector<ReverseAD> VarVectorReverseAD(double &a, double &b, const int n);
 vector<double> VarVector(double &a, double &b, const int n);
-vector<autodiff> portfolioAD(vector<autodiff> t, double &T, autodiff r, vector<autodiff> S, autodiff sigma, double &K);
+vector<ForwardAD> portfolioAD(vector<ForwardAD> t, double &T, ForwardAD r, vector<ForwardAD> S, ForwardAD sigma, double &K);
 vector<vector<double>> portfolioFD(vector<double> t, double &T, double &r, vector<double> S, double &sigma, double &K);
 
 using namespace std;
@@ -30,7 +30,7 @@ public:
 	portfolio();
 	portfolio(vector<contracttype> &, string);
 	portfolio(vector<contracttype> &, string, int, int);
-	void Price(bool useTheSameRndSequence=false);
+	void Price(bool useTheSameRndSequence = false);
 	vector<double> FiniteDiff (vector<double> &, int);
 	vector<resulttype> Delta();
 	vector<resulttype> Vega();
@@ -143,7 +143,7 @@ inline vector<double> portfolio<contracttype, resulttype>::FiniteDiff(vector<dou
 	double priceBase = 0.0;
 
 	vector<double> derivs(size(var), 0.0);
-	for (int i = 0; i < size(var); ++i) // derivative by contract or by spot?????
+	for (int i = 0; i < size(var); ++i)
 	{
 		tmp = var[i];
 		priceBase = price;

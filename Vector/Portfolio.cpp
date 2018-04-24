@@ -1,7 +1,7 @@
 #include <Portfolio.h>
-vector<autodiff> VarVectorAD(double &a, double &b, const int n)
+vector<ForwardAD> VarVectorAD(double &a, double &b, const int n)
 {
-	vector<autodiff> q(n);
+	vector<ForwardAD> q(n);
 	vector<double> d(n);
 	for (int i = 0; i < n; i++)
 	{
@@ -13,9 +13,9 @@ vector<autodiff> VarVectorAD(double &a, double &b, const int n)
 	return  q;
 }
 
-vector<aad> VarVectorAAD(double &a, double &b, const int n)
+vector<ReverseAD> VarVectorReverseAD(double &a, double &b, const int n)
 {
-	vector<aad> q(n);
+	vector<ReverseAD> q(n);
 	for (int i = 0; i < n; i++)
 		q[i].GetVar()->SetValue(a + (i + 1) * (b - a) / (n + 2));
 
@@ -32,11 +32,11 @@ vector<double> VarVector(double &a, double &b,  const int n)
 	return q;
 }
 
-vector<autodiff> portfolioAD(vector<autodiff> t, double &T, autodiff r, vector<autodiff> S, autodiff sigma, double &K)
+vector<ForwardAD> portfolioAD(vector<ForwardAD> t, double &T, ForwardAD r, vector<ForwardAD> S, ForwardAD sigma, double &K)
 {
-	vector<autodiff> dd1 = d1(S, K, r, sigma, T, t);
-	vector<autodiff> dd2 = d2(dd1, T, t, sigma);
-	vector<autodiff> C = Call(dd1, dd2, S, K, r, sigma, T, t);
+	vector<ForwardAD> dd1 = d1(S, K, r, sigma, T, t);
+	vector<ForwardAD> dd2 = d2(dd1, T, t, sigma);
+	vector<ForwardAD> C = Call(dd1, dd2, S, K, r, sigma, T, t);
 	return C;
 }
 

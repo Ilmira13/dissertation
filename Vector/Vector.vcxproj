@@ -22,7 +22,7 @@
     <ProjectGuid>{D9A56232-26F2-49C9-B7D1-56C45EDE07BD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Vector</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -45,7 +45,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -150,11 +150,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Tests.h" />
-    <ClInclude Include="AAD.h" />
+    <ClInclude Include="ReverseAD.h" />
     <ClInclude Include="OneDFunctions.h" />
-    <ClInclude Include="autodiff.h" />
+    <ClInclude Include="ForwardAD.h" />
     <ClInclude Include="BlackScholes.h" />
-    <ClInclude Include="MonteCarlo.h" />
     <ClInclude Include="Portfolio.h" />
     <ClInclude Include="RND.h" />
     <ClInclude Include="Theory.h" />
@@ -163,8 +162,8 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Tests.cpp" />
     <ClCompile Include="RND.cpp" />
-    <ClCompile Include="AAD.cpp" />
-    <ClCompile Include="autodiff.cpp" />
+    <ClCompile Include="ReverseAD.cpp" />
+    <ClCompile Include="ForwardAD.cpp" />
     <ClCompile Include="BlackScholes.cpp" />
     <ClCompile Include="Portfolio.cpp" />
   </ItemGroup>

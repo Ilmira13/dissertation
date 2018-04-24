@@ -1,5 +1,5 @@
 #pragma once
-#include <autodiff.h>
+#include <ForwardAD.h>
 
 void FunctionsTests();
 
@@ -20,10 +20,10 @@ public:
 
 	double GetValue(double x)
 	{
-		if (typeid(varType) == typeid(autodiff))
+		if (typeid(varType) == typeid(ForwardAD))
 		{
 			vector<double> d(1, 1.0);
-			autodiff newX(x, d);
+			ForwardAD newX(x, d);
 			return Value(newX).value;
 		}
 		else
@@ -32,10 +32,10 @@ public:
 
 	double GetDeriv(double x)
 	{
-		if (typeid(varType) == typeid(autodiff))
+		if (typeid(varType) == typeid(ForwardAD))
 		{
 			vector<double> d(1, 1.0);
-			autodiff newX(x, d);
+			ForwardAD newX(x, d);
 			return Value(newX).deriv[0];
 		}
 		else

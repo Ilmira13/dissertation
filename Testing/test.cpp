@@ -1,10 +1,10 @@
 #include "pch.h"
-#include "autodiff.h"
+#include "ForwardAD.h"
 
 int i = 8;
 double j = 7;
 TEST(Constructor, DefaultConstructor) {
-	autodiff c;
+	ForwardAD c;
 	vector<double> f;
 	EXPECT_EQ(c.value, 0);
 	EXPECT_EQ(c.deriv, f);
@@ -12,7 +12,7 @@ TEST(Constructor, DefaultConstructor) {
 
 TEST(Constructor, DVDConstructor) {
 	vector<double> f(i, j);
-	autodiff c(j, f);
+	ForwardAD c(j, f);
 	EXPECT_EQ(c.value, j);
 	EXPECT_EQ(size(c.deriv), i);
 	for (int k = 0; k < i; k++)
@@ -23,7 +23,7 @@ TEST(Constructor, DVDConstructor) {
 
 TEST(Constructor, DIConstructor) {
 	vector<double> f(i);
-	autodiff c(j, f);
+	ForwardAD c(j, f);
 	EXPECT_EQ(c.value, j);
 	EXPECT_EQ(size(c.deriv), i);
 	for (int k = 0; k < i; k++)
@@ -33,17 +33,17 @@ TEST(Constructor, DIConstructor) {
 }
 
 TEST(Constructor, DConstructor) {
-	autodiff c;
+	ForwardAD c;
 	c.value = j;
 	vector<double> f;
 	EXPECT_EQ(c.value, j);
 	EXPECT_EQ(c.deriv, f);
 }
 
-TEST(ClassOperator, EqualsOperatorAutodiff) {
+TEST(ClassOperator, EqualsOperatorForwardAD) {
 	vector<double> f(i, j);
-	autodiff b(double(i), f);
-	autodiff c, a;
+	ForwardAD b(double(i), f);
+	ForwardAD c, a;
 	c = a;	
 	EXPECT_EQ(c.value, a.value);
 	EXPECT_EQ(c.deriv, a.deriv);
@@ -53,7 +53,7 @@ TEST(ClassOperator, EqualsOperatorAutodiff) {
 }
 
 TEST(ClassOperator, EqualsOperatorDouble) {
-	autodiff c;
+	ForwardAD c;
 	c = j;
 	EXPECT_EQ(c.value, j);
 }

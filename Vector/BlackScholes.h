@@ -1,6 +1,6 @@
 #pragma once
-#include <autodiff.h>
-#include <aad.h>
+#include <ForwardAD.h>
+#include <ReverseAD.h>
 #include <random> 
 
 using namespace std;
@@ -12,20 +12,20 @@ enum MCtype
 };
 
 void Reset(double &var);
-void Reset(autodiff &var);
-void Reset(aad &var);
+void Reset(ForwardAD &var);
+void Reset(ReverseAD &var);
 
 double GetValue(double &var);
-double GetValue(autodiff &var);
-double GetValue(aad &var);
+double GetValue(ForwardAD &var);
+double GetValue(ReverseAD &var);
 
 double GetGrad(double &var, int n = 0);
-double GetGrad(autodiff &var, int n = 0);
-double GetGrad(aad &var, int n = 0);
+double GetGrad(ForwardAD &var, int n = 0);
+double GetGrad(ReverseAD &var, int n = 0);
 
 int GetVarsCount(double &var);
-int GetVarsCount(autodiff &var);
-int GetVarsCount(aad &var);
+int GetVarsCount(ForwardAD &var);
+int GetVarsCount(ReverseAD &var);
 
 template <typename type1, typename type2, typename type3, typename type4, typename type5> class contract
 {
@@ -90,7 +90,7 @@ inline contract<type1, type2, type3, type4, type5>::contract() : distribution(0.
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
 inline void contract<type1, type2, type3, type4, type5>::CalculateGradient()
 {
-	//if (typeid(type5) == typeid(autodiff))
+	//if (typeid(type5) == typeid(ForwardAD))
 	//{
 		delta = 0.0;
 		vega = 0.0;
@@ -104,7 +104,7 @@ inline void contract<type1, type2, type3, type4, type5>::CalculateGradient()
 			rho += GetGrad(res, i) * GetGrad(*r, i);
 		}
 	/*}
-	else if (typeid(type5) == typeid(aad))
+	else if (typeid(type5) == typeid(ReverseAD))
 	{
 		delta = GetGrad(*S);
 		vega = GetGrad(*sigma);
@@ -127,19 +127,7 @@ inline void contract<type1, type2, type3, type4, type5>::CalculateGradient()
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
 inline void contract<type1, type2, type3, type4, type5>::CalculatePrice()
 {
-	//type1 St;
-	//type2 sigmat;
-	//type3 tt;
-	//type4 rt;
-
-	//St = *S;
-	//sigmat = *sigma;
-	//tt = *t;
-	//rt = *r;
-	
-	//res = St * N(d1(St, sigmat, tt, rt)) - K * exp(-rt * (T - tt))*N(d2(St, sigmat, tt, rt));
 	res = *S * N(d1()) - K * exp(-*r * (T - *t))*N(d2());
-
 	price = GetValue(res);
 	CalculateGradient();
 }
@@ -211,7 +199,7 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 	// n - time
 	// m - trajectory
 	/*
-	price = 0.0; // potentially may cause problems in derivatives calculation with autodiff
+	price = 0.0; // potentially may cause problems in derivatives calculation with ForwardAD
 	delta = 0.0;
 	vega = 0.0;
 	rho = 0.0;
@@ -261,8 +249,6 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 	rho = GetGrad(rt) / m;
 	theta = GetGrad(tt) / m;
 	*/
-
-
 	vector<type5> result(m + 1, 0.0);
 	vector<type1> St(n);
 	type2 sigmat;
@@ -301,8 +287,6 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 		}
 
 		result[i + 1] = result[i] + exp(-rt * (T - tt))*(St[n - 1] - K)*((St[n - 1] > K) ? 1.0 : 0.0);
-		//if (St[n - 1] > K)
-		//res[i + 1] = res[i] + exp(-rt * (T - tt))*(St[n - 1] - K);
 	}
 
 	res = result[m] / m;
@@ -342,9 +326,9 @@ inline double contract<type1, type2, type3, type4, type5>::GetTheta()
 
 
 
-vector<autodiff> d1(vector<autodiff> S, double &K, autodiff r, autodiff sigma, double &T, vector<autodiff> t);
-vector<autodiff> d2(vector<autodiff> d1, double &T, vector<autodiff> t, autodiff sigma);
-vector<autodiff> Call(vector<autodiff> d1, vector<autodiff> d2, vector<autodiff> S, double &K, autodiff r, autodiff sigma, double &T, vector<autodiff> t);
+vector<ForwardAD> d1(vector<ForwardAD> S, double &K, ForwardAD r, ForwardAD sigma, double &T, vector<ForwardAD> t);
+vector<ForwardAD> d2(vector<ForwardAD> d1, double &T, vector<ForwardAD> t, ForwardAD sigma);
+vector<ForwardAD> Call(vector<ForwardAD> d1, vector<ForwardAD> d2, vector<ForwardAD> S, double &K, ForwardAD r, ForwardAD sigma, double &T, vector<ForwardAD> t);
 
 
 vector<double> d1(vector<double> S, double &K, double &r, double &sigma, double &T, vector<double> t);
