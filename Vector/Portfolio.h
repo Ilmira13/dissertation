@@ -3,7 +3,7 @@
 #include <ReverseAD.h>
 #include <BlackScholes.h>
 
-vector<ForwardAD> VarVectorAD(double &a, double &b, const int n);
+vector<ForwardAD> VarVectorForwardAD(double &a, double &b, const int n);
 vector<ReverseAD> VarVectorReverseAD(double &a, double &b, const int n);
 vector<double> VarVector(double &a, double &b, const int n);
 vector<ForwardAD> portfolioAD(vector<ForwardAD> t, double &T, ForwardAD r, vector<ForwardAD> S, ForwardAD sigma, double &K);

@@ -1,5 +1,5 @@
 #include <Portfolio.h>
-vector<ForwardAD> VarVectorAD(double &a, double &b, const int n)
+vector<ForwardAD> VarVectorForwardAD(double &a, double &b, const int n)
 {
 	vector<ForwardAD> q(n);
 	vector<double> d(n);

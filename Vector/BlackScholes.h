@@ -324,12 +324,9 @@ inline double contract<type1, type2, type3, type4, type5>::GetTheta()
 	return theta;
 }
 
-
-
 vector<ForwardAD> d1(vector<ForwardAD> S, double &K, ForwardAD r, ForwardAD sigma, double &T, vector<ForwardAD> t);
 vector<ForwardAD> d2(vector<ForwardAD> d1, double &T, vector<ForwardAD> t, ForwardAD sigma);
 vector<ForwardAD> Call(vector<ForwardAD> d1, vector<ForwardAD> d2, vector<ForwardAD> S, double &K, ForwardAD r, ForwardAD sigma, double &T, vector<ForwardAD> t);
-
 
 vector<double> d1(vector<double> S, double &K, double &r, double &sigma, double &T, vector<double> t);
 vector<double> d2(vector<double> d1, double &T, vector<double> t, double &sigma);

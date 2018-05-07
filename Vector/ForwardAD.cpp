@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 vector<double> operator + (const vector<double> u)
 {
 	return u;

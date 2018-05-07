@@ -1,12 +1,115 @@
 #pragma once
 #include <RND.h>
 
+void dissertation(const int it, const int a, const int n, const int m)
+{
+	double aS = 100;
+	double bS = 500;
+	vector<double> S = VarVector(aS, bS, a);
+	vector<ForwardAD> SFAD = VarVectorForwardAD(aS, bS, a);
+	for (int i = 0; i < a; ++i)
+	{
+		int j = 1;
+		while (j <= 3)
+		{
+			SFAD[i].deriv.push_back(0);
+		}
+	}
+	vector<ReverseAD> SRAD = VarVectorReverseAD(aS, bS, a);
+
+	double K = 300;
+	double Sigma = 0.25; 
+	vector<double> derivsig(a);
+	derivsig.push_back(1);
+	ForwardAD SigmaFAD(Sigma, derivsig);
+	ReverseAD SigmaRAD(Sigma);
+	double r = 0.03;
+	vector<double> derivr(a + 2);
+	derivr.push_back(1);
+	ForwardAD rFAD(r, derivr);
+	ReverseAD rRAD(r);
+	double T = 1;
+	double t = 1. / 365;
+	vector<double> derivt(a + 1);
+	derivt.push_back(1);
+	ForwardAD tFAD(t, derivt);
+	ReverseAD tRAD(t);
+
+	clock_t time = clock();
+
+	vector<contract<double, double, double, double, double>> contractsDBL;
+	vector<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>> contractsForwardAD;
+	vector<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>> contractsReverseAD;
+
+	for (int i = 0; i < n; i++)
+	{
+		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL.push_back(cDBL);
+		contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD> cFAD(&SFAD[i], &SigmaFAD, &tFAD, &rFAD, T, K);
+		contractsForwardAD.push_back(cFAD);
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD(&SRAD[i], &SigmaRAD, &tRAD, &rRAD, T, K);
+		contractsReverseAD.push_back(cRAD);
+	}
+	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RAD(contractsReverseAD, "0");
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FAD(contractsForwardAD, "0");
+
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD, "MC1", n, n);
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD, "MC1", n, m);
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD, "MC2", n, n);
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD, "MC2", n, m);
+
+	for (int i = 0; i < it; ++i)
+		P_RAD.Price();
+	P_RADmc1.Price();
+	P_RADmc2.Price();
+
+	P_FAD.Price();
+	P_FADmc1.Price();
+	P_FADmc2.Price();
+
+	P_DBL.Price();
+	P_DBLmc1.Price();
+	P_DBLmc2.Price();
+
+
+
+	cout << "------------0-------------" << endl;
+	cout << "DBL function value = " << P_DBL.GetPrice() << endl;
+	cout << "ReverseAD function value = " << P_RAD.GetPrice() << endl;
+	cout << "ForwardAD function value = " << P_FAD.GetPrice() << endl;
+	cout << "DBL function value - ReverseAD function value = " << P_DBL.GetPrice()-P_RAD.GetPrice() << endl;
+	cout << "DBL function value - ForwardAD function value = " << P_DBL.GetPrice() - P_FAD.GetPrice() << endl;
+
+
+	cout << "------------MC1-------------" << endl;
+	cout << "DBL function value = " << P_DBLmc1.GetPrice() << endl;
+	cout << "ReverseAD function value = " << P_RADmc1.GetPrice() << endl;
+	cout << "ForwardAD function value = " << P_FADmc1.GetPrice() << endl;
+	cout << "DBL function value - ReverseAD function value = " << P_DBLmc1.GetPrice() - P_RADmc1.GetPrice() << endl;
+	cout << "DBL function value - ForwardAD function value = " << P_DBLmc1.GetPrice() - P_FADmc1.GetPrice() << endl;
+
+
+	cout << "------------MC2-------------" << endl;
+	cout << "DBL function value = " << P_DBLmc2.GetPrice() << endl;
+	cout << "ReverseAD function value = " << P_RADmc2.GetPrice() << endl;
+	cout << "ForwardAD function value = " << P_FADmc2.GetPrice() << endl;
+	cout << "DBL function value - ReverseAD function value = " << P_DBLmc2.GetPrice() - P_RADmc2.GetPrice() << endl;
+	cout << "DBL function value - ForwardAD function value = " << P_DBLmc2.GetPrice() - P_FADmc2.GetPrice() << endl;
+
+
+}
+
 void SpotTest(const int it, const int n)
 {
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, n);
-	vector<ForwardAD> SAD = VarVectorAD(aS, bS, n); // will not work if we have other AD variables except S
+	vector<ForwardAD> SAD = VarVectorForwardAD(aS, bS, n); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
@@ -92,10 +195,10 @@ void AllVarTest(const int it, const int a)
 	double aT = 1. / 365;
 	double K = 300;
 	double T = 1;
-	vector<double> S = VarVector(aS, bS, a); vector<ForwardAD>  SAD = VarVectorAD(aS, bS, a);
-	vector<double> sigma = VarVector(aSigma, bSigma, a); vector<ForwardAD> sigmReverseAD = VarVectorAD(aSigma, bSigma, a);
-	vector<double> 	r = VarVector(aR, bR, a); vector<ForwardAD>  rAD = VarVectorAD(aR, bR, a);
-	vector<double> t = VarVector(aT, aT, a); vector<ForwardAD> tAD = VarVectorAD(aT, aT, a);
+	vector<double> S = VarVector(aS, bS, a); vector<ForwardAD>  SAD = VarVectorForwardAD(aS, bS, a);
+	vector<double> sigma = VarVector(aSigma, bSigma, a); vector<ForwardAD> sigmReverseAD = VarVectorForwardAD(aSigma, bSigma, a);
+	vector<double> 	r = VarVector(aR, bR, a); vector<ForwardAD>  rAD = VarVectorForwardAD(aR, bR, a);
+	vector<double> t = VarVector(aT, aT, a); vector<ForwardAD> tAD = VarVectorForwardAD(aT, aT, a);
 	vector<vector<double>> derivs(4 * a);
 	for (int i = 0; i < size(derivs); i++)
 	{
@@ -257,7 +360,7 @@ void MonteCarloTest(const int it, const int a, const int n, const int m)
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
-	vector<ForwardAD> SAD = VarVectorAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<ForwardAD> SAD = VarVectorForwardAD(aS, bS, a); // will not work if we have other AD variables except S
 	double K = 300;
 	double Sigma = 0.25;
 	double r = 0.03;
