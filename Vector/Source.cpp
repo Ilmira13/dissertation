@@ -19,7 +19,7 @@ int main() {
 	//ReverseADSpotTest(10, 40);
 	//ReverseADSpotTest(100, 50); // 50 variables can show the difference
     //ReverseADMonteCarloTest(1, 1, 100, 1000); //const int it, const int a, const int n, const int m
-	dissertation(1, 10);
+	dissertation();
 	system("pause");
 	return 0;
 

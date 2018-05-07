@@ -23,8 +23,8 @@ private:
 	string PricingMethod;
 	vector<contracttype> contracts;
 	void CalculatePPrice();
-	void CalculatePPriceMC1(int, int, bool useTheSameRndSequence=false);
-	void CalculatePPriceMC2(int, int, bool useTheSameRndSequence=false);
+	void CalculatePPriceMC1(int, int, bool useTheSameRndSequence = false);
+	void CalculatePPriceMC2(int, int, bool useTheSameRndSequence = false);
 
 public:
 	portfolio();

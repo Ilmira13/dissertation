@@ -7,17 +7,8 @@ void dissertation(const int it, const int a, const int n, const int m)
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
 	vector<ForwardAD> SFAD = VarVectorForwardAD(aS, bS, a);
-	for (int i = 0; i < a; ++i)
-	{
-		int j = 1;
-		while (j <= 3)
-		{
-			SFAD[i].deriv.push_back(0);
-		}
-	}
 	vector<ReverseAD> SRAD = VarVectorReverseAD(aS, bS, a);
-
-	double K = 300;
+		double K = 300;
 	double Sigma = 0.25; 
 	vector<double> derivsig(a);
 	derivsig.push_back(1);
@@ -34,6 +25,19 @@ void dissertation(const int it, const int a, const int n, const int m)
 	derivt.push_back(1);
 	ForwardAD tFAD(t, derivt);
 	ReverseAD tRAD(t);
+	for (int i = 0; i < a; i++)
+	{
+		for (int j = 1; j <= 3; j++)
+		{
+			SFAD[i].deriv.push_back(0);
+		}
+	}
+	for (int j = 1; j <= 2; j++)
+	{
+		SigmaFAD.deriv.push_back(0);
+	}
+	tFAD.deriv.push_back(0);
+
 
 	clock_t time = clock();
 
@@ -41,7 +45,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 	vector<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>> contractsForwardAD;
 	vector<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>> contractsReverseAD;
 
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < a; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL.push_back(cDBL);
