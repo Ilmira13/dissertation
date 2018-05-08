@@ -171,34 +171,34 @@ inline vector<resulttype> portfolio<contracttype, resulttype>::Delta()
 template<typename contracttype, typename resulttype>
 inline vector<resulttype> portfolio<contracttype, resulttype>::Vega()
 {
-	vector<resulttype> delta(size(contracts));
+	vector<resulttype> vega(size(contracts));
 	for (int i = 0; i < size(contracts); i++)
 	{
-		delta[i] = contracts[i].Vega();
+		vega[i] = contracts[i].Vega();
 	}
-	return delta;
+	return vega;
 }
 
 template<typename contracttype, typename resulttype>
 inline vector<resulttype> portfolio<contracttype, resulttype>::Theta()
 {
-	vector<resulttype> delta(size(contracts));
+	vector<resulttype> theta(size(contracts));
 	for (int i = 0; i < size(contracts); i++)
 	{
-		delta[i] = contracts[i].Theta();
+		theta[i] = contracts[i].Theta();
 	}
-	return delta;
+	return theta;
 }
 
 template<typename contracttype, typename resulttype>
 inline vector<resulttype> portfolio<contracttype, resulttype>::Rho()
 {
-	vector<resulttype> delta(size(contracts));
+	vector<resulttype> rho(size(contracts));
 	for (int i = 0; i < size(contracts); i++)
 	{
-		delta[i] = contracts[i].Rho();
+		rho[i] = contracts[i].Rho();
 	}
-	return delta;
+	return rho;
 }
 
 template<typename contracttype, typename resulttype>
