@@ -141,9 +141,9 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalRho += rhos[i];
 	}
 	cout  << "Theory total delta = " << totalDelta << endl;
-	cout  << "Theory 0 total vega = " << totalVega << endl;
-	cout  << "Theory 0 total theta = " << totalTheta << endl;
-	cout  << "Theory 0 total rho = " << totalRho << endl;
+	cout  << "Theory total vega = " << totalVega << endl;
+	cout  << "Theory total theta = " << totalTheta << endl;
+	cout  << "Theory total rho = " << totalRho << endl;
 
 
 	double totalDeltaF = 0;	double totalVegaF = 0;	double totalThetaF = 0;	double totalRhoF = 0;
@@ -210,7 +210,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalRhoR += rhosR[i];
 	}
 	cout  << "ReverseAD 0 total delta = " << totalDeltaR << endl;
-	cout  << "ReversedAD 0 total vega = " << totalVegaR << endl;
+	cout  << "ReverseAD 0 total vega = " << totalVegaR << endl;
 	cout  << "ReverseAD 0 total theta = " << totalThetaR << endl;
 	cout  << "ReverseAD 0 total rho = " << totalRhoR << endl;
 
@@ -227,7 +227,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalRhoR1 += rhosR1[i];
 	}
 	cout  << "ReverseAD MC1 total delta = " << totalDeltaR1 << endl;
-	cout  << "ReversedAD MC1 total vega = " << totalVegaR1 << endl;
+	cout  << "ReverseAD MC1 total vega = " << totalVegaR1 << endl;
 	cout  << "ReverseAD MC1 total theta = " << totalThetaR1 << endl;
 	cout  << "ReverseAD MC1 total rho = " << totalRhoR1 << endl;
 
@@ -244,7 +244,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalRhoR2 += rhosR2[i];
 	}
 	cout  << "ReverseAD MC2 total delta = " << totalDeltaR2 << endl;
-	cout  << "ReversedAD MC2 total vega = " << totalVegaR2 << endl;
+	cout  << "ReverseAD MC2 total vega = " << totalVegaR2 << endl;
 	cout  << "ReverseAD MC2 total theta = " << totalThetaR2 << endl;
 	cout  << "ReverseAD MC2 total rho = " << totalRhoR2 << endl;
 
@@ -257,12 +257,32 @@ void dissertation(const int it, const int a, const int n, const int m)
 	{
 		totalDeltafin += deltasfin[i];
 	}
-	cout  << "FiniteDiff 0 total delta = " << totalDeltafin << endl;
-	cout  << "FiniteDiff 0 total vega = " << P_DBL.FiniteDiff(sgm, 1)[0] << endl;
-	cout  << "FiniteDiff 0 total theta = " << P_DBL.FiniteDiff(tt, 1)[0] << endl;
-	cout  << "FiniteDiff 0 total rho = " << P_DBL.FiniteDiff(tt, 1)[0] << endl;
+	cout  << "Theory - FiniteDiff 0 total delta = " << totalDelta - totalDeltafin << endl;
+	cout  << "Theory - FiniteDiff 0 total vega = " << totalVega - P_DBL.FiniteDiff(sgm, 1)[0] << endl;
+	cout  << "Theory - FiniteDiff 0 total theta = " << totalTheta - P_DBL.FiniteDiff(tt, 1)[0] << endl;
+	cout  << "Theory - FiniteDiff 0 total rho = " << totalRho - P_DBL.FiniteDiff(tt, 1)[0] << endl;
 	
+	double totalDeltafin1 = 0;
+	vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, 1);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin1 += deltasfin1[i];
+	}
+	cout << "Theory - FiniteDiff MC1 total delta = " << totalDelta - totalDeltafin1 << endl;
+	cout << "Theory - FiniteDiff MC1 total vega = " << totalVega - P_DBLmc1.FiniteDiff(sgm, 1)[0] << endl;
+	cout << "Theory - FiniteDiff MC1 total theta = " << totalTheta - P_DBLmc1.FiniteDiff(tt, 1)[0] << endl;
+	cout << "Theory - FiniteDiff MC1 total rho = " << totalRho - P_DBLmc1.FiniteDiff(tt, 1)[0] << endl;
 
+	double totalDeltafin2 = 0;
+	vector<double> deltasfin = P_DBLmc1.FiniteDiff(S, 1);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin += deltasfin[i];
+	}
+	cout << "Theory - FiniteDiff MC2 total delta = " << totalDelta - totalDeltafin2 << endl;
+	cout << "Theory - FiniteDiff MC2 total vega = " << totalVega - P_DBLmc2.FiniteDiff(sgm, 1)[0] << endl;
+	cout << "Theory - FiniteDiff MC2 total theta = " << totalTheta - P_DBLmc2.FiniteDiff(tt, 1)[0] << endl;
+	cout << "Theory - FiniteDiff MC2 total rho = " << totalRho - P_DBLmc2.FiniteDiff(tt, 1)[0] << endl;
 
 	time = clock();
 	for (int i = 0; i < 1000*it; ++i)
