@@ -257,10 +257,10 @@ void dissertation(const int it, const int a, const int n, const int m)
 	{
 		totalDeltafin += deltasfin[i];
 	}
-	cout  << "Theory - FiniteDiff 0 total delta = " << totalDelta - totalDeltafin << endl;
-	cout  << "Theory - FiniteDiff 0 total vega = " << totalVega - P_DBL.FiniteDiff(sgm, 1)[0] << endl;
-	cout  << "Theory - FiniteDiff 0 total theta = " << totalTheta - P_DBL.FiniteDiff(tt, 1)[0] << endl;
-	cout  << "Theory - FiniteDiff 0 total rho = " << totalRho - P_DBL.FiniteDiff(tt, 1)[0] << endl;
+	cout  << "Theory - FiniteDiff 0 total delta = " << abs(totalDelta - totalDeltafin) << endl;
+	cout  << "Theory - FiniteDiff 0 total vega = " << abs(totalVega - P_DBL.FiniteDiff(sgm, 1)[0]) << endl;
+	cout  << "Theory - FiniteDiff 0 total theta = " << abs(totalTheta - P_DBL.FiniteDiff(tt, 1)[0]) << endl;
+	cout  << "Theory - FiniteDiff 0 total rho = " << abs(totalRho - P_DBL.FiniteDiff(tt, 1)[0]) << endl;
 	
 	double totalDeltafin1 = 0;
 	vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, 1);
@@ -274,15 +274,15 @@ void dissertation(const int it, const int a, const int n, const int m)
 	cout << "Theory - FiniteDiff MC1 total rho = " << totalRho - P_DBLmc1.FiniteDiff(tt, 1)[0] << endl;
 
 	double totalDeltafin2 = 0;
-	vector<double> deltasfin = P_DBLmc1.FiniteDiff(S, 1);
+	vector<double> deltasfin2 = P_DBLmc1.FiniteDiff(S, 1);
 	for (int i = 0; i < a; ++i)
 	{
-		totalDeltafin += deltasfin[i];
+		totalDeltafin2 += deltasfin2[i];
 	}
-	cout << "Theory - FiniteDiff MC2 total delta = " << totalDelta - totalDeltafin2 << endl;
-	cout << "Theory - FiniteDiff MC2 total vega = " << totalVega - P_DBLmc2.FiniteDiff(sgm, 1)[0] << endl;
-	cout << "Theory - FiniteDiff MC2 total theta = " << totalTheta - P_DBLmc2.FiniteDiff(tt, 1)[0] << endl;
-	cout << "Theory - FiniteDiff MC2 total rho = " << totalRho - P_DBLmc2.FiniteDiff(tt, 1)[0] << endl;
+	cout << "Theory - FiniteDiff MC2 total delta = " << abs(totalDelta - totalDeltafin2) << endl;
+	cout << "Theory - FiniteDiff MC2 total vega = " << abs(totalVega - P_DBLmc2.FiniteDiff(sgm, 1)[0]) << endl;
+	cout << "Theory - FiniteDiff MC2 total theta = " << abs(totalTheta - P_DBLmc2.FiniteDiff(tt, 1)[0]) << endl;
+	cout << "Theory - FiniteDiff MC2 total rho = " << abs(totalRho - P_DBLmc2.FiniteDiff(tt, 1)[0]) << endl;
 
 	time = clock();
 	for (int i = 0; i < 1000*it; ++i)
@@ -318,22 +318,22 @@ void dissertation(const int it, const int a, const int n, const int m)
 	//cout << "DBL function value = " << P_DBL.GetPrice() << endl;
 	//cout << "ReverseAD function value = " << P_RAD.GetPrice() << endl;
 	//cout << "ForwardAD function value = " << P_FAD.GetPrice() << endl;
-	//cout << "DBL function value - ReverseAD function value = " << P_DBL.GetPrice()- P_RAD.GetPrice() << endl;
-	//cout << "DBL function value - ForwardAD function value = " << P_DBL.GetPrice() - P_FAD.GetPrice() << endl;
+	//cout << "DBL function value - ReverseAD function value = " << abs(P_DBL.GetPrice()- P_RAD.GetPrice()) << endl;
+	//cout << "DBL function value - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FAD.GetPrice()) << endl;
 	//cout << "------------MC1-------------" << endl;
 	//cout << "DBL function value = " << P_DBLmc1.GetPrice() << endl;
 	//cout << "Theory - DBL function value = " << P_DBL.GetPrice() - P_DBLmc1.GetPrice() << endl;
 	//cout << "ReverseAD function value = " << P_RADmc1.GetPrice() << endl;
 	//cout << "ForwardAD function value = " << P_FADmc1.GetPrice() << endl;
-	//cout << "Theory - ReverseAD function value = " << P_DBL.GetPrice() - P_RADmc1.GetPrice() << endl;
-	//cout << "Theory - ForwardAD function value = " << P_DBL.GetPrice() - P_FADmc1.GetPrice() << endl;
+	//cout << "Theory - ReverseAD function value = " << abs(P_DBL.GetPrice() - P_RADmc1.GetPrice()) << endl;
+	//cout << "Theory - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FADmc1.GetPrice()) << endl;
 	//cout << "------------MC2-------------" << endl;
 	//cout << "DBL function value = " << P_DBLmc2.GetPrice() << endl;
 	//cout << "Theory - DBL function value = " << P_DBL.GetPrice() - P_DBLmc2.GetPrice() << endl;
 	//cout << "ReverseAD function value = " << P_RADmc2.GetPrice() << endl;
 	//cout << "ForwardAD function value = " << P_FADmc2.GetPrice() << endl;
-	//cout << "Theory - ReverseAD function value = " << P_DBL.GetPrice() - P_RADmc2.GetPrice() << endl;
-	//cout << "Theory - ForwardAD function value = " << P_DBL.GetPrice() - P_FADmc2.GetPrice() << endl;
+	//cout << "Theory - ReverseAD function value = " << abs(P_DBL.GetPrice() - P_RADmc2.GetPrice()) << endl;
+	//cout << "Theory - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FADmc2.GetPrice()) << endl;
 
 
 }
