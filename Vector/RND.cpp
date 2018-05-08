@@ -84,26 +84,26 @@ void dissertation(const int it, const int a, const int n, const int m)
 	}
 	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
-	//time = clock();
-	//for (int i = 0; i < it; ++i)
-	//{
-	//	P_FAD.Price();
-	//}
-	//cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FAD.Price();
+	}
+	cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
-	//time = clock();
-	//for (int i = 0; i < it; ++i)
-	//{
-	//	P_FADmc1.Price();
-	//}
-	//cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FADmc1.Price();
+	}
+	cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
-	//time = clock();
-	//for (int i = 0; i < it; ++i)
-	//{
-	//	P_FADmc2.Price();
-	//}
-	//cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FADmc2.Price();
+	}
+	cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
 	time = clock();
 	for (int i = 0; i < 1000*it; ++i)
@@ -128,6 +128,24 @@ void dissertation(const int it, const int a, const int n, const int m)
 
 
 
+	double totalDelta = 0;	double totalVega = 0;	double totalTheta = 0;	double totalRho = 0;
+	vector<double> deltas = P_DBL.Delta();
+	vector<double> vegas = P_DBL.Vega();
+	vector<double> thetas = P_DBL.Theta();
+	vector<double> rhos = P_DBL.Rho();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDelta += deltas[i];
+		totalVega += vegas[i];
+		totalTheta += thetas[i];
+		totalRho += rhos[i];
+	}
+	cout  << "Theory total delta = " << totalDelta << endl;
+	cout  << "Theory 0 total vega = " << totalVega << endl;
+	cout  << "Theory 0 total theta = " << totalTheta << endl;
+	cout  << "Theory 0 total rho = " << totalRho << endl;
+
+
 	double totalDeltaF = 0;	double totalVegaF = 0;	double totalThetaF = 0;	double totalRhoF = 0;
 	vector<double> deltasF = P_FAD.GetDeltas();
 	vector<double> vegasF = P_FAD.GetVegas();
@@ -140,38 +158,44 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalThetaF += thetasF[i];
 		totalRhoF += rhosF[i];
 	}
-	cout << endl << "ForwardAD 0 total delta = " << totalDeltaF << endl;
-	cout << endl << "ForwardAD 0 total vega = " << totalVegaF << endl;
-	cout << endl << "ForwardAD 0 total theta = " << totalThetaF << endl;
-	cout << endl << "ForwardAD 0 total rho = " << totalRhoF << endl;
+	cout  << "ForwardAD 0 total delta = " << totalDeltaF << endl;
+	cout  << "ForwardAD 0 total vega = " << totalVegaF << endl;
+	cout  << "ForwardAD 0 total theta = " << totalThetaF << endl;
+	cout  << "ForwardAD 0 total rho = " << totalRhoF << endl;
 
 	double totalDeltaF1 = 0;	double totalVegaF1 = 0;	double totalThetaF1 = 0;	double totalRhoF1 = 0;
 	vector<double> deltasF1 = P_FADmc1.GetDeltas();
+	vector<double> vegasF1 = P_FADmc1.GetVegas();
+	vector<double> thetasF1 = P_FADmc1.GetThetas();
+	vector<double> rhosF1 = P_FADmc1.GetRhos();
 	for (int i = 0; i < a; ++i)
 	{
 		totalDeltaF1 += deltasF1[i];
-		totalVegaF1 += deltasF1[i];
-		totalThetaF1 += deltasF1[i];
-		totalRhoF1 += deltasF1[i];
+		totalVegaF1 += vegasF1[i];
+		totalThetaF1 += thetasF1[i];
+		totalRhoF1 += rhosF1[i];
 	}
-	cout << endl << "ForwardAD MC1 total delta = " << totalDeltaF1 << endl;
-	cout << endl << "ForwardAD MC1 total vega = " << totalVegaF1 << endl;
-	cout << endl << "ForwardAD MC1 total theta = " << totalThetaF1 << endl;
-	cout << endl << "ForwardAD MC1 total rho = " << totalRhoF1 << endl;
+	cout  << "ForwardAD MC1 total delta = " << totalDeltaF1 << endl;
+	cout  << "ForwardAD MC1 total vega = " << totalVegaF1 << endl;
+	cout  << "ForwardAD MC1 total theta = " << totalThetaF1 << endl;
+	cout  << "ForwardAD MC1 total rho = " << totalRhoF1 << endl;
 
 	double totalDeltaF2 = 0;	double totalVegaF2 = 0;	double totalThetaF2 = 0;	double totalRhoF2 = 0;
 	vector<double> deltasF2 = P_FADmc2.GetDeltas();
+	vector<double> vegasF2 = P_FADmc2.GetVegas();
+	vector<double> thetasF2 = P_FADmc2.GetThetas();
+	vector<double> rhosF2 = P_FADmc2.GetRhos();
 	for (int i = 0; i < a; ++i)
 	{
 		totalDeltaF2 += deltasF2[i];
-		totalVegaF2 += deltasF2[i];
-		totalThetaF2 += deltasF2[i];
-		totalRhoF2 += deltasF2[i];
+		totalVegaF2 += vegasF2[i];
+		totalThetaF2 += thetasF2[i];
+		totalRhoF2 += rhosF2[i];
 	}
-	cout << endl << "ForwardAD MC2 total delta = " << totalDeltaF2 << endl;
-	cout << endl << "ForwardAD MC2 total vega = " << totalVegaF2 << endl;
-	cout << endl << "ForwardAD MC2 total theta = " << totalThetaF2 << endl;
-	cout << endl << "ForwardAD MC2 total rho = " << totalRhoF2 << endl;
+	cout  << "ForwardAD MC2 total delta = " << totalDeltaF2 << endl;
+	cout  << "ForwardAD MC2 total vega = " << totalVegaF2 << endl;
+	cout  << "ForwardAD MC2 total theta = " << totalThetaF2 << endl;
+	cout  << "ForwardAD MC2 total rho = " << totalRhoF2 << endl;
 
 	double totalDeltaR = 0;	double totalVegaR = 0;	double totalThetaR = 0;	double totalRhoR = 0;
 	vector<double> deltasR = P_RAD.GetDeltas();
@@ -185,10 +209,10 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalThetaR += thetasR[i];
 		totalRhoR += rhosR[i];
 	}
-	cout << endl << "ReverseAD 0 total delta = " << totalDeltaR << endl;
-	cout << endl << "ReversedAD 0 total vega = " << totalVegaR << endl;
-	cout << endl << "ReverseAD 0 total theta = " << totalThetaR << endl;
-	cout << endl << "ReverseAD 0 total rho = " << totalRhoR << endl;
+	cout  << "ReverseAD 0 total delta = " << totalDeltaR << endl;
+	cout  << "ReversedAD 0 total vega = " << totalVegaR << endl;
+	cout  << "ReverseAD 0 total theta = " << totalThetaR << endl;
+	cout  << "ReverseAD 0 total rho = " << totalRhoR << endl;
 
 	double totalDeltaR1 = 0;	double totalVegaR1 = 0;	double totalThetaR1 = 0;	double totalRhoR1 = 0;
 	vector<double> deltasR1 = P_RADmc1.GetDeltas();
@@ -202,10 +226,10 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalThetaR1 += thetasR1[i];
 		totalRhoR1 += rhosR1[i];
 	}
-	cout << endl << "ReverseAD MC1 total delta = " << totalDeltaR1 << endl;
-	cout << endl << "ReversedAD MC1 total vega = " << totalVegaR1 << endl;
-	cout << endl << "ReverseAD MC1 total theta = " << totalThetaR1 << endl;
-	cout << endl << "ReverseAD MC1 total rho = " << totalRhoR1 << endl;
+	cout  << "ReverseAD MC1 total delta = " << totalDeltaR1 << endl;
+	cout  << "ReversedAD MC1 total vega = " << totalVegaR1 << endl;
+	cout  << "ReverseAD MC1 total theta = " << totalThetaR1 << endl;
+	cout  << "ReverseAD MC1 total rho = " << totalRhoR1 << endl;
 
 	double totalDeltaR2 = 0;	double totalVegaR2 = 0;	double totalThetaR2 = 0;	double totalRhoR2 = 0;
 	vector<double> deltasR2 = P_RADmc2.GetDeltas();
@@ -219,14 +243,27 @@ void dissertation(const int it, const int a, const int n, const int m)
 		totalThetaR2 += thetasR2[i];
 		totalRhoR2 += rhosR2[i];
 	}
-	cout << endl << "ReverseAD MC2 total delta = " << totalDeltaR2 << endl;
-	cout << endl << "ReversedAD MC2 total vega = " << totalVegaR2 << endl;
-	cout << endl << "ReverseAD MC2 total theta = " << totalThetaR2 << endl;
-	cout << endl << "ReverseAD MC2 total rho = " << totalRhoR2 << endl;
+	cout  << "ReverseAD MC2 total delta = " << totalDeltaR2 << endl;
+	cout  << "ReversedAD MC2 total vega = " << totalVegaR2 << endl;
+	cout  << "ReverseAD MC2 total theta = " << totalThetaR2 << endl;
+	cout  << "ReverseAD MC2 total rho = " << totalRhoR2 << endl;
 
 	vector<double>sgm(1, Sigma);
 	vector<double>tt(1, t);
 	vector<double>rr(1, r);
+	double totalDeltafin = 0;	
+	vector<double> deltasfin = P_DBL.FiniteDiff(S, 1);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin += deltasfin[i];
+	}
+	cout  << "FiniteDiff 0 total delta = " << totalDeltafin << endl;
+	cout  << "FiniteDiff 0 total vega = " << P_DBL.FiniteDiff(sgm, 1)[0] << endl;
+	cout  << "FiniteDiff 0 total theta = " << P_DBL.FiniteDiff(tt, 1)[0] << endl;
+	cout  << "FiniteDiff 0 total rho = " << P_DBL.FiniteDiff(tt, 1)[0] << endl;
+	
+
+
 	time = clock();
 	for (int i = 0; i < 1000*it; ++i)
 	{

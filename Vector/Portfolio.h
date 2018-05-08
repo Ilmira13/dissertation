@@ -143,7 +143,7 @@ inline vector<double> portfolio<contracttype, resulttype>::FiniteDiff(vector<dou
 	double priceBase = 0.0;
 
 	vector<double> derivs(size(var), 0.0);
-	for (int i = 0; i < size(var); ++i)
+	for (int i = 0; i < size(var); i++)
 	{
 		tmp = var[i];
 		priceBase = price;
