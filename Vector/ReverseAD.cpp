@@ -90,7 +90,6 @@ void ReverseAD::adjoint::AppendToWeights(double a)
 	weights.push_back(a);
 }
 
-// --------------------------------------------------------------------------------------------------
 
 // ---------------- ReverseAD ----------------------------------------------------------------------------------
 ReverseAD::ReverseAD()
@@ -108,15 +107,6 @@ ReverseAD::ReverseAD(const adjoint &a)
 	var = new adjoint(a);
 }
 
-/*ReverseAD::ReverseAD(const ReverseAD &a)
-{
-	var = new adjoint(*a.var);
-}
-
-ReverseAD::ReverseAD(ReverseAD &a)
-{
-	var = new adjoint(*a.var);
-}*/
 
 ReverseAD::~ReverseAD()
 {
@@ -126,59 +116,14 @@ ReverseAD::~ReverseAD()
 
 void ReverseAD::operator = (ReverseAD &c)
 {
-	//delete this->var;
 	this->var = new adjoint(c.var->value);
 	c.var->weights.push_back(1.0);
 	c.var->tape.push_back(*this);
-	//this->var = c.var;
 }
 
-void ReverseAD::operator=(double c)
+void ReverseAD::operator = (double c)
 {
-	//delete this->var;
 	this->var = new adjoint(c);
-}
-
-
-ReverseAD ReverseAD::operator += (ReverseAD &a)
-{
-	//ReverseAD res(this->var->value + a.var->value);
-	//this->var->weights.push_back(1.0);
-	//this->var->tape.push_back(res);
-	//a.var->weights.push_back(1.0);
-	//a.var->tape.push_back(res);
-	this->var->value += a.var->value;
-	a.var->weights.push_back(1.0);
-	a.var->tape.push_back(*this);
-	return *this;
-}
-
-ReverseAD ReverseAD::operator += (const double &c)
-{
-	this->var->value += c;
-	return *this;
-}
-
-
-ReverseAD ReverseAD::operator *= (ReverseAD &a)
-{
-	//ReverseAD res(this->var->value + a.var->value);
-	//this->var->weights.push_back(1.0);
-	//this->var->tape.push_back(res);
-	//a.var->weights.push_back(1.0);
-	//a.var->tape.push_back(res);
-	this->var->value *= a.var->value;
-	a.var->weights.push_back(a.var->value);
-	a.var->tape.push_back(*this);
-	return *this;
-}
-
-ReverseAD ReverseAD::operator *= (const double &c)
-{
-	this->var->value *= c;
-	this->var->weights.push_back(c);
-	this->var->tape.push_back(*this);
-	return *this;
 }
 
 
@@ -220,22 +165,7 @@ ReverseAD operator * (const double c, ReverseAD &f)
 	f.var->AppendToTape(res);
 	return res;
 }
-/*ReverseAD operator * (ReverseAD &f, const double c)
-{
-	ReverseAD res(f.var->GetValue() * c);
-	f.var->AppendToWeights(c);
-	f.var->AppendToTape(res);
-	return res;
-}
-ReverseAD operator * (ReverseAD &a, ReverseAD &f)
-{
-	ReverseAD res(f.var->GetValue() * a.var->GetValue());
-	a.var->AppendToWeights(f.var->GetValue());
-	a.var->AppendToTape(res);
-	f.var->AppendToWeights(a.var->GetValue());
-	f.var->AppendToTape(res);
-	return res;
-}*/
+
 
 ReverseAD  ReverseAD::operator / (ReverseAD &c)
 {
@@ -261,22 +191,6 @@ ReverseAD operator / (const double c, ReverseAD &f)
 	f.GetVar()->AppendToTape(res);
 	return res;
 }
-/*ReverseAD operator / (ReverseAD &f, const double c)
-{
-	ReverseAD res(c / f.GetVar()->GetValue());
-	f.GetVar()->AppendToWeights(-c / f.GetVar()->GetValue() / f.GetVar()->GetValue());
-	f.GetVar()->AppendToTape(res);
-	return res;
-}
-ReverseAD operator / (ReverseAD &a, ReverseAD &f)
-{
-	ReverseAD res(a.GetVar()->GetValue() / f.GetVar()->GetValue());
-	a.GetVar()->AppendToWeights(1.0 / f.GetVar()->GetValue());
-	a.GetVar()->AppendToTape(res);
-	f.GetVar()->AppendToWeights(-a.GetVar()->GetValue() / f.GetVar()->GetValue() / f.GetVar()->GetValue());
-	f.GetVar()->AppendToTape(res);
-	return res;
-}*/
 
 ReverseAD operator + (ReverseAD &c, ReverseAD &f)
 {
@@ -303,7 +217,6 @@ ReverseAD operator + (const double c, ReverseAD &f)
 	f.GetVar()->AppendToTape(res);
 	return res;
 }
-
 
 ReverseAD operator - (ReverseAD &c, ReverseAD &f)
 {
@@ -361,7 +274,6 @@ bool ReverseAD::operator<=(const double & c) const
 {
 	return this->var->GetValue() <= c;
 }
-
 ReverseAD::adjoint* ReverseAD::GetVar()
 {
 	return var;
@@ -388,7 +300,6 @@ void ReverseAD::SetGradient(double g)
 void ReverseAD::Reset()
 {
 	double val = var->value;
-	//delete var;
 	var = new adjoint(val);
 }
 

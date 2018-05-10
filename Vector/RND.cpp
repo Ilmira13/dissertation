@@ -1,6 +1,278 @@
 #pragma once
 #include <RND.h>
 
+
+void ReverseTest(const int it, const int a, const int n, const int m)
+{
+	double aS = 100;
+	double bS = 500;
+	vector<double> S = VarVector(aS, bS, a);
+	vector<ReverseAD> SRAD = VarVectorReverseAD(aS, bS, a);
+	double K = 300;
+	double Sigma = 0.25;
+	vector<double> derivsig(a);
+	derivsig.push_back(1);
+	ReverseAD SigmaRAD(Sigma);
+	ReverseAD SigmaRAD1(Sigma);
+	ReverseAD SigmaRAD2(Sigma);
+	double r = 0.03;
+	vector<double> derivr(a + 2);
+	derivr.push_back(1);
+
+	ReverseAD rRAD(0.03);
+	ReverseAD rRAD1(0.03);
+	ReverseAD rRAD2(0.03);
+	double T = 1;
+	double t = 1. / 365;
+	vector<double> derivt(a + 1);
+	derivt.push_back(1);
+
+	ReverseAD tRAD(1. / 365);
+	ReverseAD tRAD1(1. / 365);
+	ReverseAD tRAD2(1. / 365);
+
+
+	vector<contract<double, double, double, double, double>> contractsDBL, contractsDBL1, contractsDBL2;
+	vector<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>> contractsReverseAD, contractsReverseAD1, contractsReverseAD2;
+
+	for (int i = 0; i < a; i++)
+	{
+		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL.push_back(cDBL);
+		contract<double, double, double, double, double> cDBL1(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL1.push_back(cDBL1);
+		contract<double, double, double, double, double> cDBL2(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL2.push_back(cDBL2);
+
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD(&SRAD[i], &SigmaRAD, &tRAD, &rRAD, T, K);
+		contractsReverseAD.push_back(cRAD);
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD1(&SRAD[i], &SigmaRAD1, &tRAD1, &rRAD1, T, K);
+		contractsReverseAD1.push_back(cRAD1);
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD2(&SRAD[i], &SigmaRAD2, &tRAD2, &rRAD2, T, K);
+		contractsReverseAD2.push_back(cRAD2);
+	}
+	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RAD(contractsReverseAD, "0");
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD1, "MC1", n, n);
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL2, "MC2", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD2, "MC2", n, n);
+
+	clock_t time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RAD.Price();
+	}
+	cout << "ReverseAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD 0 Price: " << P_RAD.GetPrice() << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RADmc1.Price();
+	}
+	cout << "ReverseAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC1 Price: " << P_RADmc1.GetPrice() << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RADmc2.Price();
+	}
+	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC2 Price: " << P_RADmc2.GetPrice() << endl;
+
+	P_RAD.Price();
+	P_RADmc1.Price();
+
+	P_RADmc2.Price();
+
+
+	time = clock();
+	for (int i = 0; i < 1000 * it; ++i)
+	{
+		P_DBL.Price();
+	}
+	cout << "DBL Price 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+	cout << "Theory Price: " << P_DBL.GetPrice() << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc1.Price();
+	}
+	cout << "DBL Price MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc2.Price();
+	}
+	cout << "DBL Price MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+
+
+	double totalDelta = 0;	double totalVega = 0;	double totalTheta = 0;	double totalRho = 0;
+	vector<double> deltas = P_DBL.Delta();
+	vector<double> vegas = P_DBL.Vega();
+	vector<double> thetas = P_DBL.Theta();
+	vector<double> rhos = P_DBL.Rho();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDelta += deltas[i];
+		totalVega += vegas[i];
+		totalTheta += thetas[i];
+		totalRho += rhos[i];
+	}
+	cout << "Theory total delta = " << totalDelta << endl;
+	cout << "Theory total vega = " << totalVega << endl;
+	cout << "Theory total theta = " << totalTheta << endl;
+	cout << "Theory total rho = " << totalRho << endl;
+
+
+	
+	double totalDeltaR = 0;	double totalVegaR = 0;	double totalThetaR = 0;	double totalRhoR = 0;
+	vector<double> deltasR = P_RAD.GetDeltas();
+	vector<double> vegasR = P_RAD.GetVegas();
+	vector<double> thetasR = P_RAD.GetThetas();
+	vector<double> rhosR = P_RAD.GetRhos();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR += deltasR[i];
+		totalVegaR += vegasR[i];
+		totalThetaR += thetasR[i];
+		totalRhoR += rhosR[i];
+	}
+	cout << "Error ReverseAD 0 total delta = " << abs(totalDelta - totalDeltaR) << endl;
+	cout << "ReverseAD 0 total vega = " << totalVegaR << endl;
+	cout << "ReverseAD 0 total theta = " << totalThetaR << endl;
+	cout << "ReverseAD 0 total rho = " << totalRhoR << endl;
+
+	double totalDeltaR1 = 0;	double totalVegaR1 = 0;	double totalThetaR1 = 0;	double totalRhoR1 = 0;
+	vector<double> deltasR1 = P_RADmc1.GetDeltas();
+	vector<double> vegasR1 = P_RADmc1.GetVegas();
+	vector<double> thetasR1 = P_RADmc1.GetThetas();
+	vector<double> rhosR1 = P_RADmc1.GetRhos();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR1 += deltasR1[i];
+		totalVegaR1 += vegasR1[i];
+		totalThetaR1 += thetasR1[i];
+		totalRhoR1 += rhosR1[i];
+	}
+	cout << "Error ReverseAD MC1 total delta = " << abs(totalDelta - totalDeltaR1) << endl;
+	cout << "ReverseAD MC1 total vega = " << totalVegaR1 << endl;
+	cout << "ReverseAD MC1 total theta = " << totalThetaR1 << endl;
+	cout << "ReverseAD MC1 total rho = " << totalRhoR1 << endl;
+
+	double totalDeltaR2 = 0;	double totalVegaR2 = 0;	double totalThetaR2 = 0;	double totalRhoR2 = 0;
+	vector<double> deltasR2 = P_RADmc2.GetDeltas();
+	vector<double> vegasR2 = P_RADmc2.GetVegas();
+	vector<double> thetasR2 = P_RADmc2.GetThetas();
+	vector<double> rhosR2 = P_RADmc2.GetRhos();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR2 += deltasR2[i];
+		totalVegaR2 += vegasR2[i];
+		totalThetaR2 += thetasR2[i];
+		totalRhoR2 += rhosR2[i];
+	}
+	cout << "Error ReverseAD MC2 total delta = " << abs(totalDelta - totalDeltaR2) << endl;
+	cout << "ReverseAD MC2 total vega = " << totalVegaR2 << endl;
+	cout << "ReverseAD MC2 total theta = " << totalThetaR2 << endl;
+	cout << "ReverseAD MC2 total rho = " << totalRhoR2 << endl;
+
+
+	int bump = 1;
+	vector<double>sgm(1, Sigma);
+	vector<double>tt(1, t);
+	vector<double>rr(1, r);
+	double totalDeltafin = 0;
+	vector<double> deltasfin = P_DBL.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin += deltasfin[i];
+	}
+	cout << "Theory - FiniteDiff 0 total delta = " << abs(totalDelta - totalDeltafin) << endl;
+	cout << "Theory - FiniteDiff 0 total vega = " << abs(totalVega - P_DBL.FiniteDiff(sgm, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff 0 total theta = " << abs(totalTheta - P_DBL.FiniteDiff(tt, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff 0 total rho = " << abs(totalRho - P_DBL.FiniteDiff(tt, bump)[0]) << endl;
+
+	double totalDeltafin1 = 0;
+	vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin1 += deltasfin1[i];
+	}
+	cout << "Theory - FiniteDiff MC1 total delta = " << abs(totalDelta - totalDeltafin1) << endl;
+	cout << "Theory - FiniteDiff MC1 total vega = " << abs(totalVega - P_DBLmc1.FiniteDiff(sgm, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff MC1 total theta = " << abs(totalTheta - P_DBLmc1.FiniteDiff(tt, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff MC1 total rho = " << abs(totalRho - P_DBLmc1.FiniteDiff(tt, bump)[0]) << endl;
+
+	double totalDeltafin2 = 0;
+	vector<double> deltasfin2 = P_DBLmc1.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin2 += deltasfin2[i];
+	}
+	cout << "Theory - FiniteDiff MC2 total delta = " << abs(totalDelta - totalDeltafin2) << endl;
+	cout << "Theory - FiniteDiff MC2 total vega = " << abs(totalVega - P_DBLmc2.FiniteDiff(sgm, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff MC2 total theta = " << abs(totalTheta - P_DBLmc2.FiniteDiff(tt, bump)[0]) << endl;
+	cout << "Theory - FiniteDiff MC2 total rho = " << abs(totalRho - P_DBLmc2.FiniteDiff(tt, bump)[0]) << endl;
+
+	time = clock();
+	for (int i = 0; i < 1000 * it; ++i)
+	{
+		P_DBL.FiniteDiff(S, bump);
+		P_DBL.FiniteDiff(sgm, bump);
+		P_DBL.FiniteDiff(tt, bump);
+		P_DBL.FiniteDiff(rr, bump);
+	}
+	cout << "DBL FiniteDiff 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc1.FiniteDiff(S, bump);
+		P_DBLmc1.FiniteDiff(sgm, bump);
+		P_DBLmc1.FiniteDiff(tt, bump);
+		P_DBLmc1.FiniteDiff(rr, bump);
+	}
+	cout << "DBL FiniteDiff MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc2.FiniteDiff(S, bump);
+		P_DBLmc2.FiniteDiff(sgm, bump);
+		P_DBLmc2.FiniteDiff(tt, bump);
+		P_DBLmc2.FiniteDiff(rr, bump);
+	}
+	cout << "DBL FiniteDiff MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	//cout << "------------0-------------" << endl;
+	//cout << "DBL function value = " << P_DBL.GetPrice() << endl;
+	//cout << "ReverseAD function value = " << P_RAD.GetPrice() << endl;
+	//cout << "ForwardAD function value = " << P_FAD.GetPrice() << endl;
+	//cout << "DBL function value - ReverseAD function value = " << abs(P_DBL.GetPrice()- P_RAD.GetPrice()) << endl;
+	//cout << "DBL function value - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FAD.GetPrice()) << endl;
+	//cout << "------------MC1-------------" << endl;
+	//cout << "DBL function value = " << P_DBLmc1.GetPrice() << endl;
+	//cout << "Theory - DBL function value = " << P_DBL.GetPrice() - P_DBLmc1.GetPrice() << endl;
+	//cout << "ReverseAD function value = " << P_RADmc1.GetPrice() << endl;
+	//cout << "ForwardAD function value = " << P_FADmc1.GetPrice() << endl;
+	//cout << "Theory - ReverseAD function value = " << abs(P_DBL.GetPrice() - P_RADmc1.GetPrice()) << endl;
+	//cout << "Theory - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FADmc1.GetPrice()) << endl;
+	//cout << "------------MC2-------------" << endl;
+	//cout << "DBL function value = " << P_DBLmc2.GetPrice() << endl;
+	//cout << "Theory - DBL function value = " << P_DBL.GetPrice() - P_DBLmc2.GetPrice() << endl;
+	//cout << "ReverseAD function value = " << P_RADmc2.GetPrice() << endl;
+	//cout << "ForwardAD function value = " << P_FADmc2.GetPrice() << endl;
+	//cout << "Theory - ReverseAD function value = " << abs(P_DBL.GetPrice() - P_RADmc2.GetPrice()) << endl;
+	//cout << "Theory - ForwardAD function value = " << abs(P_DBL.GetPrice() - P_FADmc2.GetPrice()) << endl;
+}
 void dissertation(const int it, const int a, const int n, const int m)
 {
 	double aS = 100;
@@ -8,23 +280,29 @@ void dissertation(const int it, const int a, const int n, const int m)
 	vector<double> S = VarVector(aS, bS, a);
 	vector<ForwardAD> SFAD = VarVectorForwardAD(aS, bS, a);
 	vector<ReverseAD> SRAD = VarVectorReverseAD(aS, bS, a);
-		double K = 300;
+	double K = 300;
 	double Sigma = 0.25; 
 	vector<double> derivsig(a);
 	derivsig.push_back(1);
 	ForwardAD SigmaFAD(Sigma, derivsig);
-	ReverseAD SigmaRAD(Sigma);
+	ReverseAD SigmaRAD(0.25);
+	ReverseAD SigmaRAD1(0.25);
+	ReverseAD SigmaRAD2(0.25);
 	double r = 0.03;
 	vector<double> derivr(a + 2);
 	derivr.push_back(1);
 	ForwardAD rFAD(r, derivr);
-	ReverseAD rRAD(r);
+	ReverseAD rRAD(0.03);
+	ReverseAD rRAD1(0.03);
+	ReverseAD rRAD2(0.03);
 	double T = 1;
 	double t = 1. / 365;
 	vector<double> derivt(a + 1);
 	derivt.push_back(1);
 	ForwardAD tFAD(t, derivt);
-	ReverseAD tRAD(t);
+	ReverseAD tRAD(1. / 365);
+	ReverseAD tRAD1(1. / 365);
+	ReverseAD tRAD2(1. / 365);
 	for (int i = 0; i < a; i++)
 	{
 		for (int j = 1; j <= 3; j++)
@@ -38,30 +316,42 @@ void dissertation(const int it, const int a, const int n, const int m)
 	}
 	tFAD.deriv.push_back(0);
 
-	vector<contract<double, double, double, double, double>> contractsDBL;
-	vector<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>> contractsForwardAD;
-	vector<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>> contractsReverseAD;
+	vector<contract<double, double, double, double, double>> contractsDBL, contractsDBL1, contractsDBL2;
+	vector<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>> contractsForwardAD, contractsForwardAD1, contractsForwardAD2;
+	vector<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>> contractsReverseAD, contractsReverseAD1, contractsReverseAD2;
 
 	for (int i = 0; i < a; i++)
 	{
 		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
 		contractsDBL.push_back(cDBL);
+		contract<double, double, double, double, double> cDBL1(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL1.push_back(cDBL1);
+		contract<double, double, double, double, double> cDBL2(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL2.push_back(cDBL2);
 		contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD> cFAD(&SFAD[i], &SigmaFAD, &tFAD, &rFAD, T, K);
 		contractsForwardAD.push_back(cFAD);
+		contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD> cFAD1(&SFAD[i], &SigmaFAD, &tFAD, &rFAD, T, K);
+		contractsForwardAD1.push_back(cFAD1);
+		contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD> cFAD2(&SFAD[i], &SigmaFAD, &tFAD, &rFAD, T, K);
+		contractsForwardAD2.push_back(cFAD2);
 		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD(&SRAD[i], &SigmaRAD, &tRAD, &rRAD, T, K);
 		contractsReverseAD.push_back(cRAD);
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD1(&SRAD[i], &SigmaRAD1, &tRAD1, &rRAD1, T, K);
+		contractsReverseAD1.push_back(cRAD1);
+		contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD> cRAD2(&SRAD[i], &SigmaRAD2, &tRAD2, &rRAD2, T, K);
+		contractsReverseAD2.push_back(cRAD2);
 	}
 	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
 	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RAD(contractsReverseAD, "0");
 	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FAD(contractsForwardAD, "0");
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
-	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD, "MC1", n, n);
-	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD, "MC1", n, m);
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD1, "MC1", n, n);
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD1, "MC1", n, m);
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
-	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD, "MC2", n, n);
-	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD, "MC2", n, m);
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL2, "MC2", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD2, "MC2", n, n);
+	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD2, "MC2", n, m);
 
 	clock_t time = clock();
 	for (int i = 0; i < it; ++i)
@@ -69,6 +359,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 		P_RAD.Price();
 	}
 	cout << "ReverseAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD 0 Price: " << P_RAD.GetPrice() << endl;
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
@@ -76,34 +367,43 @@ void dissertation(const int it, const int a, const int n, const int m)
 		P_RADmc1.Price();
 	}
 	cout << "ReverseAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
-
+	cout << "ReverseAD MC1 Price: " << P_RADmc1.GetPrice() << endl;
+	
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
 		P_RADmc2.Price();
 	}
 	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC2 Price: " << P_RADmc2.GetPrice() << endl;
 
-	/*time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FAD.Price();
-	}
-	cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FADmc1.Price();
-	}
-	cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FAD.Price();
+	//}
+	//cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD 0 Price: " << P_FAD.GetPrice() << endl;
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FADmc2.Price();
-	}
-	cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;*/
+
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FADmc1.Price();
+	//}
+	//cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD MC1 Price: " << P_FADmc1.GetPrice() << endl;
+
+
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FADmc2.Price();
+	//}
+	//cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD MC2 Price: " << P_FADmc2.GetPrice() << endl;
+
 
 	time = clock();
 	for (int i = 0; i < 1000*it; ++i)
@@ -111,6 +411,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 		P_DBL.Price();
 	}
 	cout << "DBL Price 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+	cout << "Theory Price: " << P_DBL.GetPrice() << endl;
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
@@ -146,56 +447,56 @@ void dissertation(const int it, const int a, const int n, const int m)
 	cout  << "Theory total rho = " << totalRho << endl;
 
 
-	double totalDeltaF = 0;	double totalVegaF = 0;	double totalThetaF = 0;	double totalRhoF = 0;
-	vector<double> deltasF = P_FAD.GetDeltas();
-	vector<double> vegasF = P_FAD.GetVegas();
-	vector<double> thetasF = P_FAD.GetThetas();
-	vector<double> rhosF = P_FAD.GetRhos();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF += deltasF[i];
-		totalVegaF += vegasF[i];
-		totalThetaF += thetasF[i];
-		totalRhoF += rhosF[i];
-	}
-	cout << "Error ForwardAD 0 total delta = " << abs(totalDelta - totalDeltaF) << endl;
-	cout << "Error ForwardAD 0 total vega = " << abs(totalVega - totalVega) << endl;
-	cout << "Error ForwardAD 0 total theta = " << abs(totalTheta - totalThetaF) << endl;
-	cout << "Error ForwardAD 0 total rho = " << abs(totalRho - totalRhoF) << endl;
+	//double totalDeltaF = 0;	double totalVegaF = 0;	double totalThetaF = 0;	double totalRhoF = 0;
+	//vector<double> deltasF = P_FAD.GetDeltas();
+	//vector<double> vegasF = P_FAD.GetVegas();
+	//vector<double> thetasF = P_FAD.GetThetas();
+	//vector<double> rhosF = P_FAD.GetRhos();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF += deltasF[i];
+	//	totalVegaF += vegasF[i];
+	//	totalThetaF += thetasF[i];
+	//	totalRhoF += rhosF[i];
+	//}
+	//cout << "Error ForwardAD 0 total delta = " << abs(totalDelta - totalDeltaF) << endl;
+	//cout << "Error ForwardAD 0 total vega = " << abs(totalVega - totalVega) << endl;
+	//cout << "Error ForwardAD 0 total theta = " << abs(totalTheta - totalThetaF) << endl;
+	//cout << "Error ForwardAD 0 total rho = " << abs(totalRho - totalRhoF) << endl;
 
-	double totalDeltaF1 = 0;	double totalVegaF1 = 0;	double totalThetaF1 = 0;	double totalRhoF1 = 0;
-	vector<double> deltasF1 = P_FADmc1.GetDeltas();
-	vector<double> vegasF1 = P_FADmc1.GetVegas();
-	vector<double> thetasF1 = P_FADmc1.GetThetas();
-	vector<double> rhosF1 = P_FADmc1.GetRhos();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF1 += deltasF1[i];
-		totalVegaF1 += vegasF1[i];
-		totalThetaF1 += thetasF1[i];
-		totalRhoF1 += rhosF1[i];
-	}
-	cout << "Error ForwardAD MC1 total delta = " << abs(totalDelta - totalDeltaF1) << endl;
-	cout << "Error ForwardAD MC1 total vega = " << abs(totalVega - totalVegaF1) << endl;
-	cout << "Error ForwardAD MC1 total theta = " << abs(totalTheta - totalThetaF1) << endl;
-	cout << "Error ForwardAD MC1 total rho = " << abs(totalRho - totalRhoF1) << endl;
+	//double totalDeltaF1 = 0;	double totalVegaF1 = 0;	double totalThetaF1 = 0;	double totalRhoF1 = 0;
+	//vector<double> deltasF1 = P_FADmc1.GetDeltas();
+	//vector<double> vegasF1 = P_FADmc1.GetVegas();
+	//vector<double> thetasF1 = P_FADmc1.GetThetas();
+	//vector<double> rhosF1 = P_FADmc1.GetRhos();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF1 += deltasF1[i];
+	//	totalVegaF1 += vegasF1[i];
+	//	totalThetaF1 += thetasF1[i];
+	//	totalRhoF1 += rhosF1[i];
+	//}
+	//cout << "Error ForwardAD MC1 total delta = " << abs(totalDelta - totalDeltaF1) << endl;
+	//cout << "Error ForwardAD MC1 total vega = " << abs(totalVega - totalVegaF1) << endl;
+	//cout << "Error ForwardAD MC1 total theta = " << abs(totalTheta - totalThetaF1) << endl;
+	//cout << "Error ForwardAD MC1 total rho = " << abs(totalRho - totalRhoF1) << endl;
 
-	double totalDeltaF2 = 0;	double totalVegaF2 = 0;	double totalThetaF2 = 0;	double totalRhoF2 = 0;
-	vector<double> deltasF2 = P_FADmc2.GetDeltas();
-	vector<double> vegasF2 = P_FADmc2.GetVegas();
-	vector<double> thetasF2 = P_FADmc2.GetThetas();
-	vector<double> rhosF2 = P_FADmc2.GetRhos();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF2 += deltasF2[i];
-		totalVegaF2 += vegasF2[i];
-		totalThetaF2 += thetasF2[i];
-		totalRhoF2 += rhosF2[i];
-	}
-	cout  << "Error ForwardAD MC2 total delta = " << abs(totalDelta - totalDeltaF2) << endl;
-	cout  << "Error ForwardAD MC2 total vega = " << abs(totalVega - totalVegaF2) << endl;
-	cout  << "Error ForwardAD MC2 total theta = " << abs(totalTheta - totalThetaF2) << endl;
-	cout  << "Error ForwardAD MC2 total rho = " << abs(totalRho - totalRhoF2) << endl;
+	//double totalDeltaF2 = 0;	double totalVegaF2 = 0;	double totalThetaF2 = 0;	double totalRhoF2 = 0;
+	//vector<double> deltasF2 = P_FADmc2.GetDeltas();
+	//vector<double> vegasF2 = P_FADmc2.GetVegas();
+	//vector<double> thetasF2 = P_FADmc2.GetThetas();
+	//vector<double> rhosF2 = P_FADmc2.GetRhos();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF2 += deltasF2[i];
+	//	totalVegaF2 += vegasF2[i];
+	//	totalThetaF2 += thetasF2[i];
+	//	totalRhoF2 += rhosF2[i];
+	//}
+	//cout  << "Error ForwardAD MC2 total delta = " << abs(totalDelta - totalDeltaF2) << endl;
+	//cout  << "Error ForwardAD MC2 total vega = " << abs(totalVega - totalVegaF2) << endl;
+	//cout  << "Error ForwardAD MC2 total theta = " << abs(totalTheta - totalThetaF2) << endl;
+	//cout  << "Error ForwardAD MC2 total rho = " << abs(totalRho - totalRhoF2) << endl;
 
 	double totalDeltaR = 0;	double totalVegaR = 0;	double totalThetaR = 0;	double totalRhoR = 0;
 	vector<double> deltasR = P_RAD.GetDeltas();
@@ -249,7 +550,7 @@ void dissertation(const int it, const int a, const int n, const int m)
 	cout  << "ReverseAD MC2 total rho = " << totalRhoR2 << endl;
 
 
-	int bump = 10;
+	int bump = 1;
 	vector<double>sgm(1, Sigma);
 	vector<double>tt(1, t);
 	vector<double>rr(1, r);
@@ -799,30 +1100,27 @@ void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m
 	double aS = 100;
 	double bS = 500;
 	vector<double> S = VarVector(aS, bS, a);
-	vector<ReverseAD> SAD1 = VarVectorReverseAD(aS, bS, a); // will not work if we have other AD variables except S
-	vector<ReverseAD> SAD2 = VarVectorReverseAD(aS, bS, a); // will not work if we have other AD variables except S
+	vector<ReverseAD> SAD1 = VarVectorReverseAD(aS, bS, a); 
+	vector<ReverseAD> SAD2 = VarVectorReverseAD(aS, bS, a); 
 	double K = 300;
-	double Sigma = 0.25;
+	double Sigma(0.25);
+	ReverseAD SigmaAD(Sigma);
 	double r = 0.03;
 	double T = 1;
 	double t = 1. / 365;
 
 	// compose 2 portfolios: one for double arguments and one for ForwardAD arguments
-	vector<contract<double, double, double, double, double> > contractsDBL1, contractsDBL2;
-	vector<contract<ReverseAD, double, double, double, ReverseAD> > contractsReverseAD1, contractsReverseAD2;
+	vector<contract<double, double, double, double, double> > contractsDBL;
+	vector<contract<ReverseAD, ReverseAD, double, double, ReverseAD> > contractsReverseAD;
 	for (int i = 0; i < a; i++)
 	{
-		contract<double, double, double, double, double> cDBL1(&S[i], &Sigma, &t, &r, T, K);
-		contractsDBL1.push_back(cDBL1);
-		contract<double, double, double, double, double> cDBL2(&S[i], &Sigma, &t, &r, T, K);
-		contractsDBL2.push_back(cDBL2);
-		contract<ReverseAD, double, double, double, ReverseAD> cAD1(&SAD1[i], &Sigma, &t, &r, T, K);
-		contractsReverseAD1.push_back(cAD1);
-		contract<ReverseAD, double, double, double, ReverseAD> cAD2(&SAD2[i], &Sigma, &t, &r, T, K);
-		contractsReverseAD2.push_back(cAD2);
+		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL.push_back(cDBL);
+		contract<ReverseAD, ReverseAD, double, double, ReverseAD> cAD(&SAD1[i], &SigmaAD, &t, &r, T, K);
+		contractsReverseAD.push_back(cAD);
 	}
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL1, "0");
+	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
 	clock_t time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -841,7 +1139,7 @@ void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m
 	//cout << endl;
 	cout << "Cumulative Analytical Delta: " << totalDelta << endl;
 
-	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_ADmc1(contractsReverseAD1, "MC1", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, double, double, ReverseAD>, ReverseAD> P_ADmc1(contractsReverseAD, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -861,7 +1159,7 @@ void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m
 	//cout << endl;
 	cout << "Cumulative ReverseAD MC1 Delta: " << totalDelta << endl;
 
-	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_ADmc2(contractsReverseAD2, "MC2", n, m);
+	portfolio<contract<ReverseAD, ReverseAD, double, double, ReverseAD>, ReverseAD> P_ADmc2(contractsReverseAD, "MC2", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -881,7 +1179,7 @@ void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m
 	//cout << endl;
 	cout << "Cumulative ReverseAD MC2 Delta: " << totalDelta << endl;
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{
@@ -901,7 +1199,7 @@ void ReverseADMonteCarloTest(const int it, const int a, const int n, const int m
 	}
 	cout << "Cumulative MC1 FiniteDiff Delta: " << totalDelta << endl;
 
-	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL2, "MC2", n, m);
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
 	time = clock();
 	for (int i = 0; i < it; i++)
 	{

@@ -57,11 +57,9 @@ public:
 	friend vector<double> operator / (const vector<double> h, const double &u);
 
 	friend ReverseAD operator * (const double c, ReverseAD &f);
-	//friend ReverseAD operator * (ReverseAD &f, const double c);
-	//friend ReverseAD operator * (ReverseAD &a, ReverseAD &f);
+
 	friend ReverseAD operator / (const double c, ReverseAD &f);
-	//friend ReverseAD operator / (ReverseAD &f, const double c);
-	//friend ReverseAD operator / (ReverseAD &a, ReverseAD &f);
+
 
 	friend ReverseAD operator + (ReverseAD &c, ReverseAD &f);
 	friend ReverseAD operator + (const double c, ReverseAD &f);
@@ -87,17 +85,11 @@ public:
 	ReverseAD();
 	ReverseAD(double);
 	ReverseAD(const adjoint&);
-	//ReverseAD(const ReverseAD &a);
-	//ReverseAD(ReverseAD &a);
 	~ReverseAD();
 	void operator = (ReverseAD &c);
 	void operator = (double);
 
-	ReverseAD operator += (ReverseAD &); // does not work
-	ReverseAD operator += (const double&); // does not work
 
-	ReverseAD operator *= (ReverseAD &); // does not work
-	ReverseAD operator *= (const double&); // does not work
 
 	ReverseAD operator * (ReverseAD &);
 	ReverseAD  operator * (const double&);
