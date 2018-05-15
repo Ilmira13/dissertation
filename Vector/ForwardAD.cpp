@@ -321,18 +321,3 @@ ForwardAD sqrt(ForwardAD &f)
 {
 	return ForwardAD(sqrt(f.value), 1 / (2 * sqrt(f.value)) * f.deriv);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

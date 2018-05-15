@@ -9,9 +9,9 @@ using namespace std;
 
 class ForwardAD
 {
-	friend vector<double> operator + (const vector<double>u); 
+	friend vector<double> operator + (const vector<double>u);
 	friend vector<double> operator - (const vector<double>u);
-    friend vector<double> operator + (const vector<double>u, const vector<double> h);
+	friend vector<double> operator + (const vector<double>u, const vector<double> h);
 	friend vector<double> operator - (const vector<double>u, const vector<double> h);
 	friend vector<double> operator * (const vector<double>u, const vector<double> h);
 	friend vector<double> operator * (const double &u, const vector<double> h);
@@ -26,13 +26,13 @@ class ForwardAD
 	friend ForwardAD operator + (const ForwardAD &c, const ForwardAD &f);
 	friend ForwardAD operator + (const double c, const ForwardAD &f);
 	friend ForwardAD operator + (const ForwardAD &f, const double c);
-	friend ForwardAD operator + (const ForwardAD &c); 
+	friend ForwardAD operator + (const ForwardAD &c);
 
 	friend ForwardAD operator - (const ForwardAD &c, const ForwardAD &f);
 	friend ForwardAD operator - (const double c, const ForwardAD &f);
 	friend ForwardAD operator - (const ForwardAD &f, const double c);
-	friend ForwardAD operator - (const ForwardAD &c); 
-	
+	friend ForwardAD operator - (const ForwardAD &c);
+
 	friend ForwardAD sin(ForwardAD &f);
 	friend ForwardAD cos(ForwardAD &f);
 	friend ForwardAD log(ForwardAD &f);
@@ -43,15 +43,15 @@ class ForwardAD
 	friend double dN(const double &f); // density
 
 public:
-	double  value; 
+	double  value;
 	vector<double>  deriv;
-	ForwardAD(double, vector<double>); 
+	ForwardAD(double, vector<double>);
 	ForwardAD();
 	ForwardAD(double, int);
 	ForwardAD(double);
 	void operator = (ForwardAD &c);
 	void operator = (double);
-	
+
 	ForwardAD operator * (const ForwardAD &);
 	ForwardAD  operator * (const double &);
 
@@ -70,4 +70,3 @@ public:
 };
 
 #endif
-

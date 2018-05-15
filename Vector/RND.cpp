@@ -1,6 +1,286 @@
 #pragma once
 #include <RND.h>
+//for (int i = 0; i < a; i++)
+//{
+//	contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
+//	contractsDBL.push_back(cDBL);
+//	contract<double, double, double, double, double> cDBL1(&S1[i], &Sigma, &t, &r, T, K);
+//	contractsDBL1.push_back(cDBL1);
+//	contract<double, double, double, double, double> cDBL2(&S2[i], &Sigma, &t, &r, T, K);
+//	contractsDBL2.push_back(cDBL2);
+//
+//	contract<ReverseAD, double, double, double, ReverseAD> cRAD(&SRAD[i], &Sigma, &t, &r, T, K);
+//	contractsReverseAD.push_back(cRAD);
+//	contract<ReverseAD, double, double, double, ReverseAD> cRAD1(&SRAD1[i], &Sigma, &t, &r, T, K);
+//	contractsReverseAD1.push_back(cRAD1);
+//	contract<ReverseAD, double, double, double, ReverseAD> cRAD2(&SRAD2[i], &Sigma, &t, &r, T, K);
+//	contractsReverseAD2.push_back(cRAD2);
 
+//	contract<ForwardAD, double, double, double, ForwardAD> cFAD(&SFAD[i], &Sigma, &t, &r, T, K);
+//	contractsForwardAD.push_back(cFAD);
+//	contract<ForwardAD, double, double, double, ForwardAD> cFAD1(&SFAD1[i], &Sigma, &t, &r, T, K);
+//	contractsForwardAD1.push_back(cFAD1);
+//	contract<ForwardAD, double, double, double, ForwardAD> cFAD2(&SFAD2[i], &Sigma, &t, &r, T, K);
+//	contractsForwardAD2.push_back(cFAD2);
+//}
+//portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
+//portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RAD(contractsReverseAD, "0");
+//portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FAD(contractsForwardAD, "0");
+//
+//portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
+//portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD1, "MC1", n, m);
+//portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD1, "MC1", n, m);
+//
+//portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
+//portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD2, "MC2", n, m);
+//portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD2, "MC2", n, m);
+
+void DeltaTest(const int it, const int a, const int n, const int m)
+{
+	double aS = 100;
+	double bS = 500;
+	vector<double> S = VarVector(aS, bS, a);
+	vector<double> S1 = VarVector(aS, bS, a);
+	vector<double> S2 = VarVector(aS, bS, a);
+	vector<ReverseAD> SRAD = VarVectorReverseAD(aS, bS, a);
+	vector<ReverseAD> SRAD1 = VarVectorReverseAD(aS, bS, a);
+	vector<ReverseAD> SRAD2 = VarVectorReverseAD(aS, bS, a);
+	vector<ForwardAD> SFAD = VarVectorForwardAD(aS, bS, a);
+	vector<ForwardAD> SFAD1 = VarVectorForwardAD(aS, bS, a);
+	vector<ForwardAD> SFAD2 = VarVectorForwardAD(aS, bS, a);
+	
+	double K = 300;
+	double Sigma = 0.25;
+	double r = 0.03;
+	double T = 1;
+	double t = 1. / 365;
+
+	vector<contract<double, double, double, double, double>> contractsDBL, contractsDBL1, contractsDBL2;
+	vector<contract<ReverseAD, double, double, double, ReverseAD>> contractsReverseAD, contractsReverseAD1, contractsReverseAD2;
+	vector<contract<ForwardAD, double, double, double, ForwardAD>> contractsForwardAD, contractsForwardAD1, contractsForwardAD2;
+
+	for (int i = 0; i < a; i++)
+	{
+		contract<double, double, double, double, double> cDBL(&S[i], &Sigma, &t, &r, T, K);
+		contractsDBL.push_back(cDBL);
+
+		contract<ReverseAD, double, double, double, ReverseAD> cRAD(&SRAD[i], &Sigma, &t, &r, T, K);
+		contractsReverseAD.push_back(cRAD);
+
+		contract<ForwardAD, double, double, double, ForwardAD> cFAD(&SFAD[i], &Sigma, &t, &r, T, K);
+		contractsForwardAD.push_back(cFAD);
+	}
+	portfolio<contract<double, double, double, double, double>, double> P_DBL(contractsDBL, "0");
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RAD(contractsReverseAD, "0");
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FAD(contractsForwardAD, "0");
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL, "MC1", n, m);
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD, "MC1", n, m);
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD, "MC1", n, m);
+
+	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL, "MC2", n, m);
+	portfolio<contract<ReverseAD, double, double, double, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD, "MC2", n, m);
+	portfolio<contract<ForwardAD, double, double, double, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD, "MC2", n, m);
+
+	
+	cout.precision(13);
+	clock_t time = clock(); 
+	for (int i = 0; i < 1000 * it; ++i)
+	{
+		P_DBL.Price();
+	}
+	cout << "DBL Price 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+	cout << "Theory Price: " << P_DBL.GetPrice() << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc1.Price();
+	}
+	cout << "DBL Price MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc2.Price();
+	}
+	cout << "DBL Price MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RAD.Price();
+	}
+	P_RAD.Price();
+
+	cout << "ReverseAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD 0 Price: " << P_RAD.GetPrice() << endl;
+	cout << "Error ReverseAD 0 Price: " << abs(P_DBL.GetPrice() - P_RAD.GetPrice()) << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RADmc1.Price();
+	}
+	P_RADmc1.Price();
+
+	cout << "ReverseAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC1 Price: " << P_RADmc1.GetPrice() << endl;
+	cout << "Error ReverseAD MC1 Price: " << abs(P_DBL.GetPrice() - P_RADmc1.GetPrice()) << endl;
+
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_RADmc2.Price();
+	}
+	P_RADmc2.Price();
+
+	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ReverseAD MC2 Price: " << P_RADmc2.GetPrice() << endl;
+	cout << "Error ReverseAD MC2 Price: " << abs(P_DBL.GetPrice() - P_RADmc2.GetPrice()) << endl;
+
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FAD.Price();
+	}
+	cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ForwardAD 0 Price: " << P_FAD.GetPrice() << endl;
+	cout << "Error ForwardAD 0 Price: " << abs(P_DBL.GetPrice() - P_FAD.GetPrice()) << endl;
+	
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FADmc1.Price();
+	}
+	cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ForwardAD MC1 Price: " << P_FADmc1.GetPrice() << endl;
+	cout << "Error ForwardAD MC1 Price: " << abs(P_DBL.GetPrice() - P_FADmc1.GetPrice()) << endl;
+
+
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_FADmc2.Price();
+	}
+	cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	cout << "ForwardAD MC2 Price: " << P_FADmc2.GetPrice() << endl;
+	cout << "Error ForwardAD MC2 Price: " << abs(P_DBL.GetPrice() - P_FADmc2.GetPrice()) << endl;
+
+
+
+
+
+	double totalDelta = 0;	
+	vector<double> deltas = P_DBL.Delta();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDelta += deltas[i];
+	}
+	cout << "Theory total delta = " << totalDelta << endl;
+
+	double totalDeltaF = 0;	
+	vector<double> deltasF = P_FAD.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaF += deltasF[i];
+	}
+	cout << "Error ForwardAD 0 total delta = " << abs(totalDelta - totalDeltaF) << endl;
+
+	double totalDeltaF1 = 0;
+	vector<double> deltasF1 = P_FADmc1.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaF1 += deltasF1[i];
+	}
+	cout << "Error ForwardAD MC1 total delta = " << abs(totalDelta - totalDeltaF1) << endl;
+
+	double totalDeltaF2 = 0;	
+	vector<double> deltasF2 = P_FADmc2.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaF2 += deltasF2[i];
+	}
+	cout  << "Error ForwardAD MC2 total delta = " << abs(totalDelta - totalDeltaF2) << endl;
+
+	double totalDeltaR = 0;	
+	vector<double> deltasR = P_RAD.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR += deltasR[i];
+	}
+	cout << "Error ReverseAD 0 total delta = " << abs(totalDelta - totalDeltaR) << endl;
+
+
+	double totalDeltaR1 = 0;	
+	vector<double> deltasR1 = P_RADmc1.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR1 += deltasR1[i];
+	}
+	cout << "Error ReverseAD MC1 total delta = " << abs(totalDelta - totalDeltaR1) << endl;
+
+	double totalDeltaR2 = 0;	
+	vector<double> deltasR2 = P_RADmc2.GetDeltas();
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltaR2 += deltasR2[i];
+	}
+	cout << "Error ReverseAD MC2 total delta = " << abs(totalDelta - totalDeltaR2) << endl;
+
+	int bump = 1;
+	double totalDeltafin = 0;
+	vector<double> deltasfin = P_DBL.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin += deltasfin[i];
+	}
+	cout << "Theory - FiniteDiff 0 total delta = " << abs(totalDelta - totalDeltafin) << endl;
+
+	double totalDeltafin1 = 0;
+	vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin1 += deltasfin1[i];
+	}
+	cout << "Theory - FiniteDiff MC1 total delta = " << abs(totalDelta - totalDeltafin1) << endl;
+
+
+	double totalDeltafin2 = 0;
+	vector<double> deltasfin2 = P_DBLmc1.FiniteDiff(S, bump);
+	for (int i = 0; i < a; ++i)
+	{
+		totalDeltafin2 += deltasfin2[i];
+	}
+	cout << "Theory - FiniteDiff MC2 total delta = " << abs(totalDelta - totalDeltafin2) << endl;
+
+
+	time = clock();
+	for (int i = 0; i < 1000 * it; ++i)
+	{
+		P_DBL.FiniteDiff(S, bump);
+	}
+	cout << "DBL FiniteDiff 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc1.FiniteDiff(S, bump);
+	}
+	cout << "DBL FiniteDiff MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	time = clock();
+	for (int i = 0; i < it; ++i)
+	{
+		P_DBLmc2.FiniteDiff(S, bump);
+	}
+	cout << "DBL FiniteDiff MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+}
 
 void ReverseTest(const int it, const int a, const int n, const int m)
 {
@@ -83,12 +363,6 @@ void ReverseTest(const int it, const int a, const int n, const int m)
 	}
 	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 	cout << "ReverseAD MC2 Price: " << P_RADmc2.GetPrice() << endl;
-
-	P_RAD.Price();
-	P_RADmc1.Price();
-
-	P_RADmc2.Price();
-
 
 	time = clock();
 	for (int i = 0; i < 1000 * it; ++i)
@@ -346,11 +620,11 @@ void dissertation(const int it, const int a, const int n, const int m)
 	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FAD(contractsForwardAD, "0");
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBLmc1(contractsDBL1, "MC1", n, m);
-	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD1, "MC1", n, n);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc1(contractsReverseAD1, "MC1", n, m);
 	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc1(contractsForwardAD1, "MC1", n, m);
 
 	portfolio<contract<double, double, double, double, double>, double> P_DBLmc2(contractsDBL2, "MC2", n, m);
-	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD2, "MC2", n, n);
+	portfolio<contract<ReverseAD, ReverseAD, ReverseAD, ReverseAD, ReverseAD>, ReverseAD> P_RADmc2(contractsReverseAD2, "MC2", n, m);
 	portfolio<contract<ForwardAD, ForwardAD, ForwardAD, ForwardAD, ForwardAD>, ForwardAD> P_FADmc2(contractsForwardAD2, "MC2", n, m);
 
 	clock_t time = clock();
