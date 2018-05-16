@@ -98,6 +98,7 @@ void DeltaTest(const int it, const int a, const int n, const int m)
 		P_DBLmc1.Price();
 	}
 	cout << "DBL Price MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	P_DBLmc1.~portfolio();
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
@@ -105,181 +106,177 @@ void DeltaTest(const int it, const int a, const int n, const int m)
 		P_DBLmc2.Price();
 	}
 	cout << "DBL Price MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
-
+	P_DBLmc2.~portfolio();
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
 		P_RAD.Price();
 	}
-	P_RAD.Price();
-
 	cout << "ReverseAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 	cout << "ReverseAD 0 Price: " << P_RAD.GetPrice() << endl;
 	cout << "Error ReverseAD 0 Price: " << abs(P_DBL.GetPrice() - P_RAD.GetPrice()) << endl;
+	P_RAD.~portfolio();
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
 		P_RADmc1.Price();
 	}
-	P_RADmc1.Price();
-
 	cout << "ReverseAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 	cout << "ReverseAD MC1 Price: " << P_RADmc1.GetPrice() << endl;
 	cout << "Error ReverseAD MC1 Price: " << abs(P_DBL.GetPrice() - P_RADmc1.GetPrice()) << endl;
-
+	P_RADmc1.~portfolio();
 
 	time = clock();
 	for (int i = 0; i < it; ++i)
 	{
 		P_RADmc2.Price();
 	}
-	P_RADmc2.Price();
-
 	cout << "ReverseAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 	cout << "ReverseAD MC2 Price: " << P_RADmc2.GetPrice() << endl;
 	cout << "Error ReverseAD MC2 Price: " << abs(P_DBL.GetPrice() - P_RADmc2.GetPrice()) << endl;
+	P_RADmc2.~portfolio();
 
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FAD.Price();
-	}
-	cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
-	cout << "ForwardAD 0 Price: " << P_FAD.GetPrice() << endl;
-	cout << "Error ForwardAD 0 Price: " << abs(P_DBL.GetPrice() - P_FAD.GetPrice()) << endl;
-	
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FAD.Price();
+	//}
+	//cout << "ForwardAD 0 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD 0 Price: " << P_FAD.GetPrice() << endl;
+	//cout << "Error ForwardAD 0 Price: " << abs(P_DBL.GetPrice() - P_FAD.GetPrice()) << endl;
+	//
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FADmc1.Price();
-	}
-	cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
-	cout << "ForwardAD MC1 Price: " << P_FADmc1.GetPrice() << endl;
-	cout << "Error ForwardAD MC1 Price: " << abs(P_DBL.GetPrice() - P_FADmc1.GetPrice()) << endl;
-
-
-
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_FADmc2.Price();
-	}
-	cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
-	cout << "ForwardAD MC2 Price: " << P_FADmc2.GetPrice() << endl;
-	cout << "Error ForwardAD MC2 Price: " << abs(P_DBL.GetPrice() - P_FADmc2.GetPrice()) << endl;
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FADmc1.Price();
+	//}
+	//cout << "ForwardAD MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD MC1 Price: " << P_FADmc1.GetPrice() << endl;
+	//cout << "Error ForwardAD MC1 Price: " << abs(P_DBL.GetPrice() - P_FADmc1.GetPrice()) << endl;
 
 
 
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_FADmc2.Price();
+	//}
+	//cout << "ForwardAD MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//cout << "ForwardAD MC2 Price: " << P_FADmc2.GetPrice() << endl;
+	//cout << "Error ForwardAD MC2 Price: " << abs(P_DBL.GetPrice() - P_FADmc2.GetPrice()) << endl;
 
 
-	double totalDelta = 0;	
-	vector<double> deltas = P_DBL.Delta();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDelta += deltas[i];
-	}
-	cout << "Theory total delta = " << totalDelta << endl;
-
-	double totalDeltaF = 0;	
-	vector<double> deltasF = P_FAD.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF += deltasF[i];
-	}
-	cout << "Error ForwardAD 0 total delta = " << abs(totalDelta - totalDeltaF) << endl;
-
-	double totalDeltaF1 = 0;
-	vector<double> deltasF1 = P_FADmc1.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF1 += deltasF1[i];
-	}
-	cout << "Error ForwardAD MC1 total delta = " << abs(totalDelta - totalDeltaF1) << endl;
-
-	double totalDeltaF2 = 0;	
-	vector<double> deltasF2 = P_FADmc2.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaF2 += deltasF2[i];
-	}
-	cout  << "Error ForwardAD MC2 total delta = " << abs(totalDelta - totalDeltaF2) << endl;
-
-	double totalDeltaR = 0;	
-	vector<double> deltasR = P_RAD.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaR += deltasR[i];
-	}
-	cout << "Error ReverseAD 0 total delta = " << abs(totalDelta - totalDeltaR) << endl;
 
 
-	double totalDeltaR1 = 0;	
-	vector<double> deltasR1 = P_RADmc1.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaR1 += deltasR1[i];
-	}
-	cout << "Error ReverseAD MC1 total delta = " << abs(totalDelta - totalDeltaR1) << endl;
 
-	double totalDeltaR2 = 0;	
-	vector<double> deltasR2 = P_RADmc2.GetDeltas();
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltaR2 += deltasR2[i];
-	}
-	cout << "Error ReverseAD MC2 total delta = " << abs(totalDelta - totalDeltaR2) << endl;
+	//double totalDelta = 0;	
+	//vector<double> deltas = P_DBL.Delta();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDelta += deltas[i];
+	//}
+	//cout << "Theory total delta = " << totalDelta << endl;
 
-	int bump = 1;
-	double totalDeltafin = 0;
-	vector<double> deltasfin = P_DBL.FiniteDiff(S, bump);
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltafin += deltasfin[i];
-	}
-	cout << "Theory - FiniteDiff 0 total delta = " << abs(totalDelta - totalDeltafin) << endl;
+	//double totalDeltaF = 0;	
+	//vector<double> deltasF = P_FAD.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF += deltasF[i];
+	//}
+	//cout << "Error ForwardAD 0 total delta = " << abs(totalDelta - totalDeltaF) << endl;
 
-	double totalDeltafin1 = 0;
-	vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, bump);
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltafin1 += deltasfin1[i];
-	}
-	cout << "Theory - FiniteDiff MC1 total delta = " << abs(totalDelta - totalDeltafin1) << endl;
+	//double totalDeltaF1 = 0;
+	//vector<double> deltasF1 = P_FADmc1.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF1 += deltasF1[i];
+	//}
+	//cout << "Error ForwardAD MC1 total delta = " << abs(totalDelta - totalDeltaF1) << endl;
+
+	//double totalDeltaF2 = 0;	
+	//vector<double> deltasF2 = P_FADmc2.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaF2 += deltasF2[i];
+	//}
+	//cout  << "Error ForwardAD MC2 total delta = " << abs(totalDelta - totalDeltaF2) << endl;
+
+	//double totalDeltaR = 0;	
+	//vector<double> deltasR = P_RAD.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaR += deltasR[i];
+	//}
+	//cout << "Error ReverseAD 0 total delta = " << abs(totalDelta - totalDeltaR) << endl;
 
 
-	double totalDeltafin2 = 0;
-	vector<double> deltasfin2 = P_DBLmc1.FiniteDiff(S, bump);
-	for (int i = 0; i < a; ++i)
-	{
-		totalDeltafin2 += deltasfin2[i];
-	}
-	cout << "Theory - FiniteDiff MC2 total delta = " << abs(totalDelta - totalDeltafin2) << endl;
+	//double totalDeltaR1 = 0;	
+	//vector<double> deltasR1 = P_RADmc1.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaR1 += deltasR1[i];
+	//}
+	//cout << "Error ReverseAD MC1 total delta = " << abs(totalDelta - totalDeltaR1) << endl;
+
+	//double totalDeltaR2 = 0;	
+	//vector<double> deltasR2 = P_RADmc2.GetDeltas();
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltaR2 += deltasR2[i];
+	//}
+	//cout << "Error ReverseAD MC2 total delta = " << abs(totalDelta - totalDeltaR2) << endl;
+
+	//int bump = 1;
+	//double totalDeltafin = 0;
+	//vector<double> deltasfin = P_DBL.FiniteDiff(S, bump);
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltafin += deltasfin[i];
+	//}
+	//cout << "Theory - FiniteDiff 0 total delta = " << abs(totalDelta - totalDeltafin) << endl;
+
+	///*double totalDeltafin1 = 0;
+	//vector<double> deltasfin1 = P_DBLmc1.FiniteDiff(S, bump);
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltafin1 += deltasfin1[i];
+	//}
+	//cout << "Theory - FiniteDiff MC1 total delta = " << abs(totalDelta - totalDeltafin1) << endl;*/
 
 
-	time = clock();
-	for (int i = 0; i < 1000 * it; ++i)
-	{
-		P_DBL.FiniteDiff(S, bump);
-	}
-	cout << "DBL FiniteDiff 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+	//double totalDeltafin2 = 0;
+	//vector<double> deltasfin2 = P_DBLmc2.FiniteDiff(S, bump);
+	//for (int i = 0; i < a; ++i)
+	//{
+	//	totalDeltafin2 += deltasfin2[i];
+	//}
+	//cout << "Theory - FiniteDiff MC2 total delta = " << abs(totalDelta - totalDeltafin2) << endl;
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_DBLmc1.FiniteDiff(S, bump);
-	}
-	cout << "DBL FiniteDiff MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 
-	time = clock();
-	for (int i = 0; i < it; ++i)
-	{
-		P_DBLmc2.FiniteDiff(S, bump);
-	}
-	cout << "DBL FiniteDiff MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+	//time = clock();
+	//for (int i = 0; i < 1000 * it; ++i)
+	//{
+	//	P_DBL.FiniteDiff(S, bump);
+	//}
+	//cout << "DBL FiniteDiff 0 time: " << double(clock() - time) / CLOCKS_PER_SEC / 1000 << endl;
+
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_DBLmc1.FiniteDiff(S, bump);
+	//}
+	//cout << "DBL FiniteDiff MC1 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
+
+	//time = clock();
+	//for (int i = 0; i < it; ++i)
+	//{
+	//	P_DBLmc2.FiniteDiff(S, bump);
+	//}
+	//cout << "DBL FiniteDiff MC2 time: " << double(clock() - time) / CLOCKS_PER_SEC << endl;
 }
 
 void ReverseTest(const int it, const int a, const int n, const int m)

@@ -59,6 +59,7 @@ private:
 public:
 	contract(type1*, type2*, type3*, type4*, double, double);
 	contract();
+	~contract();
 	void CalculateGradient();
 	void CalculatePrice();
 	void CalculatePriceMC(int, int, MCtype, bool useTheSameRndSequence=false);
@@ -86,6 +87,18 @@ template<typename type1, typename type2, typename type3, typename type4, typenam
 inline contract<type1, type2, type3, type4, type5>::contract() : distribution(0.0, 1.0), price(0.0)
 {
 }
+
+template<typename type1, typename type2, typename type3, typename type4, typename type5>
+inline contract<type1, type2, type3, type4, type5>::~contract()
+{
+}
+
+//template<typename type1, typename type2, typename type3, typename type4, typename type5>
+//inline contract<type1, type2, type3, type4, type5>::~contract()
+//{
+//	delete S, sigma, t, r, &res, &price, &delta, &vega, &theta, &rho, &K, &T;
+//	rnd.~vector();
+//}
 
 template<typename type1, typename type2, typename type3, typename type4, typename type5>
 inline void contract<type1, type2, type3, type4, type5>::CalculateGradient()
@@ -249,13 +262,11 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 	rho = GetGrad(rt) / m;
 	theta = GetGrad(tt) / m;
 	*/
-	vector<type5> result(m + 1, 0.0);
-	vector<type1> St(n);
+	//vector<type5> result(m + 1, 0.0);
+	type5 result = 0;
 	type2 sigmat;
 	type3 tt;
 	type4 rt;
-
-	St[0] = *S;
 	sigmat = *sigma;
 	tt = *t;
 	rt = *r;
@@ -270,6 +281,8 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 
 	for (int i = 0; i < m; i++)
 	{
+		vector<type1> St(n);
+		St[0] = *S;
 		for (int j = 1; j < n; j++)
 		{
 			switch (type)
@@ -285,11 +298,11 @@ inline void contract<type1, type2, type3, type4, type5>::CalculatePriceMC(int n,
 				break;
 			}
 		}
-
-		result[i + 1] = result[i] + exp(-rt * (T - tt))*(St[n - 1] - K)*((St[n - 1] > K) ? 1.0 : 0.0);
+		result = result + exp(-rt * (T - tt))*(St[n - 1] - K)*((St[n - 1] > K) ? 1.0 : 0.0);
+		St.~vector();
 	}
 
-	res = result[m] / m;
+	res = result / m;
 	price = GetValue(res);
 	CalculateGradient();
 }

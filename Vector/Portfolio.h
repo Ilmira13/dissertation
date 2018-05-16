@@ -28,6 +28,7 @@ private:
 
 public:
 	portfolio();
+	~portfolio();
 	portfolio(vector<contracttype> &, string);
 	portfolio(vector<contracttype> &, string, int, int);
 	void Price(bool useTheSameRndSequence = false);
@@ -48,6 +49,13 @@ template<typename contracttype, typename resulttype> inline portfolio<contractty
 {
 	
 }
+
+template<typename contracttype, typename resulttype>
+inline portfolio<contracttype, resulttype>::~portfolio()
+{
+	contracts.~vector();
+}
+
 
 template<typename contracttype, typename resulttype> inline portfolio<contracttype, resulttype>::portfolio(vector<contracttype> &iContracts, string str)
 {
